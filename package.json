@@ -1,0 +1,28 @@
+{
+    "name": "ws-template",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "bun --filter '*' dev",
+        "start": "bun --filter '*' start",
+        "build": "bun --filter '*' build",
+        "db:gen": "bun --filter '*' db:gen",
+        "db:dev": "bun --filter '*' db:dev",
+        "del": "bun --filter '*' del && rm -rf node_modules"
+    },
+    "workspaces": [
+        "pkg/*",
+        "apps/*"
+    ],
+    "packageManager": "bun@1.3.14",
+    "dependencies": {
+        "prettier-plugin-tailwindcss": "^0.8.1",
+        "zod": "^4.6.2"
+    },
+    "devDependencies": {
+        "@types/bun": "^1.4.2",
+        "@types/node": "^26.5.1",
+        "eslint": "^10.10.0",
+        "prettier": "^3.9.6"
+    }
+}
