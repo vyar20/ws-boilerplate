@@ -62,5 +62,14 @@ export default defineConfig([
         }
       ]
     }
+  },
+  {
+    // shadcn/base-ui components export their variants (e.g. buttonVariants)
+    // alongside the component. That's an intentional pattern here, so relax the
+    // Fast Refresh rule for the generated UI primitives only.
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off'
+    }
   }
 ])
