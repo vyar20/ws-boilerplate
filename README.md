@@ -202,6 +202,8 @@ Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 | `bun run db:push` | Push the Prisma schema to the database. |
 | `bun run db:std` | Open Prisma Studio. |
 | `bun run auth:gen` | Regenerate Better Auth Prisma models. |
+| `bun run test` | Run the test suite (Bun test runner). |
+| `bun run test:watch` | Run the test suite in watch mode. |
 | `bun run del` | Remove all `node_modules`/build output. |
 
 ---
@@ -306,6 +308,52 @@ NODE_ENV=production bun run start
 ```
 
 The production server serves the static SPA and the API from the same port defined by `PORT`.
+
+---
+
+## Testing
+
+Tests use Bun's built-in test runner (`bun:test`). Run them from the repo root:
+
+```bash
+bun run test          # run the whole suite
+bun run test:watch    # watch mode
+```
+
+Coverage lives next to the source as `*.test.ts` across the `pkg/*` packages
+(utils, validations, env, api, config, db). The `@repo/db` tests require a
+generated Prisma client — run `bun run db:gen` first, otherwise they skip.
+
+---
+
+## CI/CD
+
+GitHub Actions workflows live in [`.github/workflows`](.github/workflows):
+
+- **CI** ([`ci.yml`](.github/workflows/ci.yml)) — on every push/PR to `main`/`master`: install → generate Prisma client → **lint** (enforces the client/server boundary) → **test** → **build**.
+- **CD** ([`cd.yml`](.github/workflows/cd.yml)) — on push to `main` and `v*` tags: builds a production Docker image (see [`Dockerfile`](Dockerfile)) and publishes it to the GitHub Container Registry (`ghcr.io`) using the built-in `GITHUB_TOKEN` (no extra secrets).
+
+### Docker
+
+Build and run the single-container image locally:
+
+```bash
+docker build --build-arg VITE_BACKEND_URL=http://localhost:3000 -t app .
+docker run --rm -p 3000:3000 \
+  -e PORT=3000 \
+  -e DATABASE_URL=postgresql://user:pass@host:5432/db \
+  -e BETTER_AUTH_SECRET=your-32char-secret \
+  -e BETTER_AUTH_URL=http://localhost:3000 \
+  -e ENCRYPTION_KEY=your-32char-key \
+  app
+```
+
+> `VITE_BACKEND_URL` is baked into the frontend bundle at **build time** — pass it
+> as a build arg (or the `VITE_BACKEND_URL` repository variable in CD) to match
+> your deployed domain. All other secrets are injected at **run time**.
+>
+> Deploying the published image to a specific host (VPS, Fly.io, Cloud Run, …)
+> is the last step — plug your target into `cd.yml`.
 
 ---
 

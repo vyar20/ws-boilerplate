@@ -1,0 +1,22 @@
+# Reinstalled / regenerated inside the image
+node_modules
+**/node_modules
+**/dist
+**/generated
+
+# Local-only
+.git
+.github
+logs
+**/logs
+*.log
+
+# Secrets — never copy real env into the build context (.env.example is kept)
+.env
+**/.env
+
+# Docs / editor
+README.md
+ONBOARDING.md
+.vscode
+.idea
