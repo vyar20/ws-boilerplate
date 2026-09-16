@@ -1,0 +1,26 @@
+{
+    "name": "@repo/db",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "db:push": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun prisma db push",
+        "db:gen": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun prisma generate",
+        "db:std": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun prisma studio",
+        "auth:gen": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun run auth generate --config=../api/src/lib/auth.ts -y",
+        "del": "rm -rf node_modules dist"
+    },
+    "exports": {
+        ".": "./src/db.ts"
+    },
+    "dependencies": {
+        "@prisma/adapter-pg": "^7.10.0",
+        "@prisma/client": "^7",
+        "@repo/env": "workspace:*"
+    },
+    "devDependencies": {
+        "@repo/config": "workspace:*",
+        "@types/pg": "^8.23.1",
+        "auth": "^1.7.4",
+        "prisma": "^7"
+    }
+}

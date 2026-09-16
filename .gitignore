@@ -4,4 +4,6 @@ node_modules
 
 **/generated
 
+**/logs
+
 prompt.txt

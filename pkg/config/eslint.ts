@@ -1,11 +1,18 @@
 import js from '@eslint/js'
-import { Config, globalIgnores } from 'eslint/config'
+import { type Config, globalIgnores } from 'eslint/config'
 import ts from 'typescript-eslint'
 
 export default [
   globalIgnores(['node_modules', 'dist', '*.config.{ts,js}']),
   js.configs.recommended,
   ts.configs.recommended,
+  {
+    languageOptions: {
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname
+      }
+    }
+  },
   {
     files: ['**/*.{ts,tsx}'],
     rules: {
@@ -19,10 +26,11 @@ export default [
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          args: '^_',
+          argsIgnorePattern: '^_',
           varsIgnorePattern: '^_'
         }
-      ]
+      ],
+      'react-hooks/exhaustive-deps': 'off'
     }
   },
   { files: ['**/*.{js,jsx}'], rules: {} }

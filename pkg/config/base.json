@@ -13,6 +13,7 @@
       "ESNext"
     ],
     "skipLibCheck": true,
+    "erasableSyntaxOnly": false,
     "types": [
       "bun"
     ]

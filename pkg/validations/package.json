@@ -1,0 +1,15 @@
+{
+    "name": "@repo/validations",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "del": "rm -rf node_modules dist"
+    },
+    "exports": {
+        "./*": "./src/*.ts"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "@repo/config": "workspace:*"
+    }
+}

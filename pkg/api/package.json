@@ -1,0 +1,23 @@
+{
+    "name": "@repo/api",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "del": "rm -rf node_modules dist"
+    },
+    "exports": {
+        ".": "./src/client.ts",
+        "./_route": "./src/_route.ts",
+        "./auth": "./src/lib/auth.ts"
+    },
+    "dependencies": {
+        "@better-auth/prisma-adapter": "^1.7.4",
+        "@repo/db": "workspace:*",
+        "@repo/env": "workspace:*",
+        "@repo/utils": "workspace:*",
+        "@repo/validations": "workspace:*"
+    },
+    "devDependencies": {
+        "@repo/config": "workspace:*"
+    }
+}

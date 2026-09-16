@@ -9,7 +9,9 @@
         ".": "./src/utils.ts",
         "./*": "./src/*.ts"
     },
-    "dependencies": {},
+    "dependencies": {
+        "pino": "^10.3.1"
+    },
     "devDependencies": {
         "@repo/config": "workspace:*"
     }
