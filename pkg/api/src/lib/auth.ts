@@ -1,7 +1,7 @@
 import { prismaAdapter } from '@better-auth/prisma-adapter'
 import { db } from '@repo/db'
 import { env } from '@repo/env'
-import { EventLogType } from '@repo/utils'
+import { EventLogType, maskEmail } from '@repo/utils'
 import { logger } from '@repo/utils/logger'
 import { passwordSchema } from '@repo/validations/sign-in-validation'
 import { betterAuth } from 'better-auth'
@@ -18,7 +18,11 @@ export const auth = betterAuth({
         logger.info({
           type: EventLogType.USER_LOGGED_IN,
           message: 'User Login',
-          data: { ...ctx.body, password: '*************' }
+          data: {
+            ...ctx.body,
+            email: maskEmail(ctx.body?.email),
+            password: '*************'
+          }
         })
         return
       }
@@ -35,7 +39,11 @@ export const auth = betterAuth({
       logger.info({
         type: EventLogType.USER_CREATED,
         message: 'New User Created',
-        data: { ...ctx.body, password: '*************' }
+        data: {
+          ...ctx.body,
+          email: maskEmail(ctx.body?.email),
+          password: '*************'
+        }
       })
     })
   },

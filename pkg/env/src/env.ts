@@ -6,8 +6,8 @@ const envSchema = z.object({
   }),
   DATABASE_URL: z
     .url({ error: 'DATABASE_URL is required' })
-    .startsWith('postgres://', {
-      error: 'DATABASE_URL should start with postgres://.'
+    .regex(/^postgres(ql)?:\/\//, {
+      error: 'DATABASE_URL should start with postgres:// or postgresql://.'
     }),
   PORT: z.coerce.number({ error: 'PORT is required.' }),
   BETTER_AUTH_SECRET: z
@@ -23,8 +23,6 @@ const envSchema = z.object({
     .min(32, { error: 'ENCRYPTION_KEY min length 32.' })
 })
 
-type EnvSchema = z.infer<typeof envSchema>
-
 export const env = (() => {
   const parsed = envSchema.safeParse(process.env)
 
@@ -36,8 +34,7 @@ export const env = (() => {
     process.exit(1)
   }
 
-  return Object.keys(envSchema.shape).reduce(
-    (acc, curr) => ({ ...acc, [curr]: process.env[curr] }),
-    {} as EnvSchema
-  )
+  // Return the parsed/coerced values (e.g. PORT as number), not the raw
+  // process.env strings — otherwise the inferred types would lie at runtime.
+  return parsed.data
 })()

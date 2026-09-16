@@ -4,9 +4,9 @@
     "private": true,
     "scripts": {
         "dev": "bun run development",
-        "development": "NODE_ENV=development bun --hot src/app-dev.ts",
+        "development": "bun --hot src/app-dev.ts",
         "start": "bun run prod",
-        "prod": "NODE_ENV=production bun --hot src/app-dev.ts",
+        "prod": "bun --hot src/app-prod.ts",
         "del": "rm -rf node_modules dist"
     },
     "dependencies": {

@@ -1,6 +1,16 @@
 export const p = <T>(p: Promise<T>): Promise<[null, T] | [Error]> =>
   p.then((data) => [null, data] as [null, T]).catch((err) => [err])
 
+// Mask an email for logging so PII is not stored in plaintext logs,
+// while keeping just enough (first char + domain) for audit correlation.
+// e.g. "john.doe@mail.com" -> "j***@mail.com"
+export const maskEmail = (email: unknown): string => {
+  if (typeof email !== 'string') return ''
+  const [local, domain] = email.split('@')
+  if (!local || !domain) return '***'
+  return `${local[0]}***@${domain}`
+}
+
 export const HTTPText = {
   OK: 'OK',
   INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',

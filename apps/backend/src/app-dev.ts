@@ -2,9 +2,18 @@ import { getRequestListener } from '@hono/node-server'
 import { env } from '@repo/env'
 import { HTTPCode, HTTPText } from '@repo/utils/utils'
 import { createServer } from 'node:http'
-import { app, vite } from './app'
+import { createServer as createViteServer } from 'vite'
+import { app, frontendPath } from './app'
 
 const honoHandler = getRequestListener(app.fetch)
+
+// Vite dev server lives in the dev entrypoint only, so production
+// (app-prod.ts) never spins one up.
+const vite = await createViteServer({
+  server: { middlewareMode: true },
+  root: frontendPath,
+  mode: 'spa'
+})
 
 const server = await createServer((req, res) => {
   const url = req.url

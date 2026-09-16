@@ -20,5 +20,47 @@ export default defineConfig([
       globals: globals.browser
     }
   },
-  base
+  base,
+  {
+    // Enforce the client/server boundary: server-only workspace packages must
+    // never be imported from frontend code, or their transitive deps (Prisma,
+    // pino, better-auth server config, env secrets) would end up in the browser
+    // bundle. `@repo/api/_route` is allowed as a *type* import only (for AppType).
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': 'off',
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@repo/db',
+              message: 'Server-only (Prisma). Do not import from the frontend.'
+            },
+            {
+              name: '@repo/env',
+              message:
+                'Holds server env/secrets. Use import.meta.env on the client.'
+            },
+            {
+              name: '@repo/api/auth',
+              message:
+                'Server-only (better-auth + db). Do not import from the frontend.'
+            },
+            {
+              name: '@repo/utils/logger',
+              message:
+                'Server-only (pino/node). Do not import from the frontend.'
+            },
+            {
+              name: '@repo/api/_route',
+              allowTypeImports: true,
+              message:
+                'Server-only route. Import as a type only: import type { AppType }.'
+            }
+          ]
+        }
+      ]
+    }
+  }
 ])

@@ -5,7 +5,6 @@ import { logger } from '@repo/utils/logger'
 import { Hono } from 'hono'
 import { type ContentfulStatusCode } from 'hono/utils/http-status'
 import path from 'node:path'
-import { createServer } from 'vite'
 import { auth } from '../../../pkg/api/src/lib/auth'
 import { sessionMiddleware } from './middleware/auth-middleware'
 import { isAuthenticatedMiddlware } from './middleware/is-authenticated-middleware'
@@ -17,15 +16,9 @@ export const frontendPath = path.resolve(
   env.NODE_ENV === 'development' ? '../../frontend' : '../../frontend/dist'
 )
 
-export const vite = await createServer({
-  server: { middlewareMode: true },
-  root: frontendPath,
-  mode: 'spa'
-})
-
 app.use(sessionMiddleware)
 app.all('/api/auth/*', (c) => auth.handler(c.req.raw))
-app.use('/api', isAuthenticatedMiddlware)
+app.use('/api/*', isAuthenticatedMiddlware)
 app.route('/api', _route)
 
 app.onError((err, c) => {
