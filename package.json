@@ -7,6 +7,7 @@
         "start": "bun --filter '*' start",
         "build": "bun --filter '*' build",
         "lint": "bun --filter '*' lint",
+        "test": "bun --filter '*' test",
         "db:gen": "bun --filter '*' db:gen",
         "db:push": "bun --filter '*' db:push",
         "db:std": "bun --filter '*' db:std",
