@@ -2,15 +2,17 @@ import { createAuthClient } from 'better-auth/react'
 import { type ClientResponse, hc } from 'hono/client'
 import { type AppType } from './client-route'
 
-export const api = hc<AppType>(`${import.meta.env.VITE_BACKEND_URL}/api`, {
+// Same-origin (single-port) serving: the frontend and the API share one origin,
+// so relative paths resolve correctly in the browser without a build-time base URL.
+export const api = hc<AppType>('/api', {
   init: {
     credentials: 'include'
   }
 })
 
-export const authClient = createAuthClient({
-  baseURL: import.meta.env.VITE_BACKEND_URL
-})
+// baseURL omitted on purpose: Better Auth falls back to window.location.origin,
+// which is correct under single-port serving.
+export const authClient = createAuthClient()
 
 type RpcBody<T> =
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

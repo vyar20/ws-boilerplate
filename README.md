@@ -126,7 +126,7 @@ bun install
 
 ### 3. Configure environment variables
 
-Create the two env files (see [Environment variables](#environment-variables) for details):
+Create the backend env file (see [Environment variables](#environment-variables) for details):
 
 **`apps/backend/.env`**
 
@@ -139,11 +139,9 @@ BETTER_AUTH_URL=http://localhost:3000
 ENCRYPTION_KEY=replace-with-a-random-string-at-least-32-chars
 ```
 
-**`apps/frontend/.env`**
-
-```dotenv
-VITE_BACKEND_URL=http://localhost:3000
-```
+> The frontend needs **no env file**. Because the API and the SPA are served from
+> a single origin, the browser calls the API via a relative `/api` path — no
+> build-time base URL is required.
 
 > Generate strong secrets with: `openssl rand -base64 48`
 
@@ -179,13 +177,16 @@ Validated in [`pkg/env/src/env.ts`](pkg/env/src/env.ts). The app **won't start**
 | `BETTER_AUTH_URL` | URL starting with `http` | Public base URL of the auth server. |
 | `ENCRYPTION_KEY` | string, min 32 chars | Reserved for app-level encrypt/decrypt. |
 
-### Frontend — `apps/frontend/.env`
+### Frontend
 
-| Variable | Description |
-| --- | --- |
-| `VITE_BACKEND_URL` | Base URL the browser calls (API + auth). Must be `VITE_`-prefixed to be exposed to the client. |
+The frontend requires **no environment variables**. The API and the SPA are served
+from the same origin (single-port serving), so the browser reaches the API through a
+relative `/api` path and Better Auth falls back to `window.location.origin` — no
+build-time base URL is needed.
 
-> ⚠️ Only `VITE_`-prefixed variables are exposed to the browser. Server secrets (`DATABASE_URL`, `BETTER_AUTH_SECRET`, …) are **never** shipped to the client.
+> ⚠️ If you ever split the frontend and backend onto **different origins**, reintroduce a
+> `VITE_`-prefixed base URL (e.g. `VITE_BACKEND_URL`) and use it in [`pkg/api/src/client.ts`](pkg/api/src/client.ts).
+> Only `VITE_`-prefixed variables are exposed to the browser; server secrets (`DATABASE_URL`, `BETTER_AUTH_SECRET`, …) are **never** shipped to the client.
 
 ---
 
@@ -312,7 +313,7 @@ The production server serves the static SPA and the API from the same port defin
 ## Security notes
 
 - **Client/server boundary is enforced.** [`apps/frontend/eslint.config.js`](apps/frontend/eslint.config.js) uses `@typescript-eslint/no-restricted-imports` to block server-only packages (`@repo/db`, `@repo/env`, `@repo/api/auth`, `@repo/utils/logger`) from being imported in frontend code. `@repo/api/_route` is allowed **as a type import only**. This guarantees Prisma, secrets, and server logic never leak into the browser bundle.
-- **Secrets never reach the client.** Only `VITE_`-prefixed vars are exposed by Vite; the RPC route type is erased at build time.
+- **Secrets never reach the client.** The frontend ships with no env file, so no build-time values are baked into the bundle; only `VITE_`-prefixed vars would ever be exposed by Vite, and the RPC route type is erased at build time.
 - **Passwords are redacted in logs**, and credentials are validated against a strong password policy.
 - **Keep `.env` files out of version control** (already covered by `.gitignore`). Rotate any secret that has been shared or committed.
 
