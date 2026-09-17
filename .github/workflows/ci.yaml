@@ -37,6 +37,9 @@ jobs:
           ENCRYPTION_KEY=ci-dummy-encryption-key-00000000000000000
           EOF
 
+      - name: Make logs dir
+        run: mkdir logs
+
       - name: Generate Prisma client
         run: bun run db:gen
 

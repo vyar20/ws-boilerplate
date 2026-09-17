@@ -54,8 +54,8 @@ const SignIn = () => {
   const { control, handleSubmit } = useForm<SignInValidation>({
     resolver: zodResolver(signInValidation),
     defaultValues: {
-      email: 'test@mail.com',
-      password: 'Password1234!'
+      email: '',
+      password: ''
     }
   })
 
@@ -105,9 +105,9 @@ const SignUp = () => {
   const { control, handleSubmit } = useForm<SignUpValidation>({
     resolver: zodResolver(signUpValidation),
     defaultValues: {
-      name: 'test',
-      email: 'test@mail.com',
-      password: 'Password1234!'
+      name: '',
+      email: '',
+      password: ''
     }
   })
 
