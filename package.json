@@ -10,6 +10,9 @@
         "test": "bun --filter '*' test",
         "db:gen": "bun --filter '*' db:gen",
         "db:push": "bun --filter '*' db:push",
+        "db:migrate": "bun --filter '*' db:migrate",
+        "db:migrate:deploy": "bun --filter '*' db:migrate:deploy",
+        "db:migrate:status": "bun --filter '*' db:migrate:status",
         "db:std": "bun --filter '*' db:std",
         "auth:gen": "bun --filter '*' auth:gen",
         "del": "bun --filter '*' del && rm -rf node_modules"

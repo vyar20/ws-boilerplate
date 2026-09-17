@@ -148,9 +148,14 @@ ENCRYPTION_KEY=replace-with-a-random-string-at-least-32-chars
 ### 4. Set up the database
 
 ```bash
-bun run db:gen     # generate the Prisma client
-bun run db:push    # push the schema to your database
+bun run db:gen         # generate the Prisma client
+bun run db:migrate     # apply the committed migrations to your database
 ```
+
+> `db:migrate` applies the migration history in [`pkg/db/prisma/migrations`](pkg/db/prisma/migrations)
+> and keeps your database in sync as new migrations land. For quick, throwaway
+> prototyping you can use `bun run db:push` instead — it syncs the schema without
+> recording a migration, so don't use it on shared or production databases.
 
 ### 5. Run the dev server
 
@@ -200,7 +205,10 @@ Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 | `bun run build` | Build the frontend for production. |
 | `bun run start` | Start the backend in production mode (serves the static build). |
 | `bun run db:gen` | Generate the Prisma client. |
-| `bun run db:push` | Push the Prisma schema to the database. |
+| `bun run db:push` | Push the Prisma schema to the database (no migration history — dev/prototyping only). |
+| `bun run db:migrate` | Create and apply a new migration in development (`prisma migrate dev`). |
+| `bun run db:migrate:deploy` | Apply all pending migrations without generating new ones (`prisma migrate deploy`) — for CI and production. |
+| `bun run db:migrate:status` | Show the status of migrations against the database. |
 | `bun run db:std` | Open Prisma Studio. |
 | `bun run auth:gen` | Regenerate Better Auth Prisma models. |
 | `bun run del` | Remove all `node_modules`/build output. |
@@ -291,7 +299,10 @@ Create a Zod schema in [`pkg/validations/src`](pkg/validations/src) and import i
 
 ### Add a database model
 
-Add a `*.prisma` model under [`pkg/db/prisma/models`](pkg/db/prisma/models), then run `bun run db:gen && bun run db:push`.
+Add a `*.prisma` model under [`pkg/db/prisma/models`](pkg/db/prisma/models), then run `bun run db:migrate` to
+create a migration and apply it (this also regenerates the Prisma client). Commit the generated
+folder under [`pkg/db/prisma/migrations`](pkg/db/prisma/migrations) alongside your schema change so
+the migration history stays in sync across environments — CI applies it via `db:migrate:deploy`.
 
 ### Add a page
 
