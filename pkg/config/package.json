@@ -5,7 +5,6 @@
     "type": "module",
     "scripts": {
         "test": "bun test",
-        "lint": "eslint .",
         "del": "rm -rf node_modules dist"
     },
     "exports": {
