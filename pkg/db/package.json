@@ -3,10 +3,12 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
+        "test": "bun test",
         "db:push": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun prisma db push",
         "db:gen": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun prisma generate",
         "db:std": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun prisma studio",
         "auth:gen": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun run auth generate --config=../api/src/lib/auth.ts -y",
+        "lint": "eslint .",
         "del": "rm -rf node_modules dist"
     },
     "exports": {

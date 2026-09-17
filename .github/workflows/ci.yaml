@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  ci:
+    name: linting - test - build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install deps
+        run: bun install --frozen-lockfile
+
+      # Dummy env used only for codegen/lint/test/build in CI.
+      # `prisma generate` does NOT connect to the database, so these
+      # non-functional placeholders are enough to satisfy env validation.
+      # Real values must come from GitHub Secrets, never be committed.
+      - name: Create dummy env for codegen
+        run: |
+          cat > apps/backend/.env <<'EOF'
+          NODE_ENV=development
+          PORT=3000
+          DATABASE_URL=postgresql://ci:ci@localhost:5432/ci
+          BETTER_AUTH_SECRET=ci-dummy-better-auth-secret-000000000000
+          BETTER_AUTH_URL=http://localhost:3000
+          ENCRYPTION_KEY=ci-dummy-encryption-key-00000000000000000
+          EOF
+
+      - name: Generate Prisma client
+        run: bun run db:gen
+
+      - name: linting
+        run: bun run lint
+
+      - name: test
+        run: bun run test
+
+      - name: build
+        run: bun run build
