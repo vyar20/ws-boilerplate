@@ -18,6 +18,8 @@ Fork it, set a few environment variables, and start building.
 - [Scripts](#scripts)
 - [Routes](#routes)
 - [How it works](#how-it-works)
+- [Testing](#testing)
+- [Contributing workflow](#contributing-workflow)
 - [Recipes](#recipes)
 - [Production build](#production-build)
 - [Security notes](#security-notes)
@@ -204,6 +206,7 @@ Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 | `bun run dev` | Start the backend in dev mode (Hono + Vite HMR) on one port. |
 | `bun run build` | Build the frontend for production. |
 | `bun run start` | Start the backend in production mode (serves the static build). |
+| `bun run test` | Run the unit test suites across every workspace (`bun test`). |
 | `bun run db:gen` | Generate the Prisma client. |
 | `bun run db:push` | Push the Prisma schema to the database (no migration history — dev/prototyping only). |
 | `bun run db:migrate` | Create and apply a new migration in development (`prisma migrate dev`). |
@@ -266,6 +269,46 @@ The client is typed with `hc<AppType>()`, where `AppType` is the *type* of the H
 ### Error handling & logging
 
 Throw an `ErrorHandler(message, code, reason)` from [`@repo/utils`](pkg/utils/src/utils.ts) anywhere in the API; the global `onError` serializes it to a clean JSON response and logs it via Pino (to `logs/`). Unexpected errors return a generic `INTERNAL_SERVER_ERROR` — internal details are logged, never sent to the client.
+
+---
+
+## Testing
+
+Unit tests run on **Bun's built-in test runner** (`bun test`). Test files live next to
+the code they cover and use the `*.test.ts` suffix (e.g.
+[`pkg/utils/src/utils.test.ts`](pkg/utils/src/utils.test.ts),
+[`pkg/validations/src/sign-in-validation.test.ts`](pkg/validations/src/sign-in-validation.test.ts)).
+
+```bash
+bun run test            # run every workspace's suite
+bun test path/to/file   # run a single file while iterating
+```
+
+**Always ship code with tests.** Every change to behavior — a new API route, a
+validation schema, a utility, a bug fix — must come with unit tests that cover the
+happy path and the meaningful failure/edge cases (invalid input, auth denials,
+boundary values). Keep the suite green before opening a pull request:
+
+```bash
+bun run test
+```
+
+---
+
+## Contributing workflow
+
+Follow this loop for every task so the repo stays healthy and reviewable:
+
+1. **Write (or update) unit tests.** New behavior and bug fixes land with tests
+   next to the code (`*.test.ts`). Cover the happy path plus the meaningful edge
+   and failure cases. Run `bun run test` and make sure everything passes.
+2. **Update this README when needed.** If a change adds or alters a script, route,
+   environment variable, package, or workflow, reflect it here in the same change
+   so the docs never drift from the code.
+3. **Open a pull request when the task is done.** Work on a feature branch, keep
+   commits focused, and open a PR once the task is complete and the suite is green.
+   Describe what changed, why, and how it was tested. Don't commit directly to
+   `master`.
 
 ---
 
