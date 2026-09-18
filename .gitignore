@@ -7,5 +7,4 @@ node_modules
 
 prompt.txt
 
-**/migrations
 logs/*

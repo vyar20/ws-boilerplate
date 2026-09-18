@@ -38,9 +38,10 @@ Fork it, set a few environment variables, and start building.
 | Frontend                  | **React 19**, **React Router**, **Vite**                                                 |
 | Data fetching             | **TanStack Query** (React Query)                                                         |
 | Forms & validation        | **react-hook-form** + **Zod** (shared schemas)                                           |
-| UI                        | **Tailwind CSS v4**, **shadcn / base-ui**, **lucide-react**, **sonner**, **next-themes** |
+| UI                        | **Tailwind CSS v4**, **shadcn / base-ui**, **lucide-react**, **sonner**                  |
+| State management (client) | **Zustand** (theme store in `@repo/context`)                                             |
 | Logging                   | **Pino** (file transport)                                                                |
-| Tooling                   | **ESLint**, **Prettier**, **React Compiler**                                             |
+| Tooling                   | **ESLint**, **Prettier**, **React Compiler** (scaffolded, currently disabled)            |
 
 ---
 
@@ -63,11 +64,12 @@ Fork it, set a few environment variables, and start building.
 │   ├── backend/        # Hono server: API + serves the frontend (dev & prod)
 │   └── frontend/       # React + Vite SPA
 ├── pkg/
-│   ├── api/            # Hono routes, Better Auth setup, typed RPC client
+│   ├── api/            # Hono routes, Better Auth setup, AppType for the RPC client
 │   ├── config/         # Shared tsconfig / eslint / prettier
+│   ├── context/        # Client state stores (Zustand theme store)
 │   ├── db/             # Prisma schema, models, generated client
 │   ├── env/            # Zod-validated environment variables
-│   ├── react-query/    # TanStack Query hooks (auth)
+│   ├── react-query/    # TanStack Query hooks (auth) + the RPC & auth clients
 │   ├── utils/          # HTTP helpers, error handler, logger
 │   └── validations/    # Shared Zod schemas
 ├── logs/               # Pino log output (gitignored)
@@ -92,11 +94,12 @@ Every workspace package is published internally as `@repo/<name>` and consumed v
 
 | Package                 | Purpose                                                                                                                                            | Key exports                                                                                                        |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| **`@repo/api`**         | API layer. Hono route definitions, Better Auth configuration, and the browser RPC client.                                                          | `.` → `client.ts` (`api`, `authClient`, `rpcFetcher`), `./_route` (route + `AppType`), `./auth` (server-only auth) |
+| **`@repo/api`**         | API layer. Hono route definitions and Better Auth configuration. Exposes the route _type_ (`AppType`) that the RPC client is built from.            | `./client` → `AppType` (type-only), `./_route` (route + `AppType` + `Env`), `./auth` (server-only Better Auth instance) |
 | **`@repo/db`**          | Prisma client (singleton) + `pg` adapter and the schema/models (`User`, `Session`, `Account`, `Verification`).                                     | `.` → `db`                                                                                                         |
 | **`@repo/env`**         | Loads and **validates** `process.env` with Zod. Exits the process on invalid/missing vars, and returns _coerced_ values (e.g. `PORT` as a number). | `.` → `env`                                                                                                        |
 | **`@repo/validations`** | Shared Zod schemas used on both client and server (sign-in, sign-up, password policy).                                                             | `./sign-in-validation`, `./sign-up-validation`                                                                     |
-| **`@repo/react-query`** | TanStack Query hooks that wrap the auth client.                                                                                                    | `./auth/use-session`, `./auth/use-sign-in`, `./auth/use-sign-up`, `./auth/use-sign-out`                            |
+| **`@repo/react-query`** | TanStack Query hooks that wrap the auth client, plus the typed Hono RPC client (`api`) and the Better Auth browser client (`authClient`).           | `./auth/use-session`, `./auth/use-sign-in`, `./auth/use-sign-up`, `./auth/use-sign-out`, `./lib/rpc` (`api`), `./lib/auth-client` (`authClient`) |
+| **`@repo/context`**     | Client-side state stores. Currently a Zustand store for the light/dark theme.                                                                       | `./theme-context` (`themeContext`)                                                                                 |
 | **`@repo/utils`**       | Cross-cutting helpers: `HTTPCode`/`HTTPText`, `ErrorHandler`, `EventLogType`, `maskEmail`, a promise-tuple helper `p`, and the Pino `logger`.      | `.` → `utils.ts`, `./logger`                                                                                       |
 | **`@repo/config`**      | Shared `tsconfig` base, ESLint config, and Prettier config.                                                                                        | `./tsconfig`, `./eslint`, `./prettier`                                                                             |
 
@@ -206,9 +209,10 @@ Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 | `bun run dev`               | Start the backend in dev mode (Hono + Vite HMR) on one port.                                                |
 | `bun run build`             | Build the frontend for production.                                                                          |
 | `bun run start`             | Start the backend in production mode (serves the static build).                                             |
-| `bun run test`              | Run the unit test suites across every workspace (`bun test`).                                               |
+| `bun run test`              | Run the unit test suites in each workspace that defines a `test` script (`bun test`).                        |
 | `bun run db:gen`            | Generate the Prisma client.                                                                                 |
 | `bun run db:push`           | Push the Prisma schema to the database (no migration history — dev/prototyping only).                       |
+| `bun run db:seed`           | Seed the database (runs [`pkg/db/src/seed.ts`](pkg/db/src/seed.ts)).                                        |
 | `bun run db:migrate`        | Create and apply a new migration in development (`prisma migrate dev`).                                     |
 | `bun run db:migrate:deploy` | Apply all pending migrations without generating new ones (`prisma migrate deploy`) — for CI and production. |
 | `bun run db:migrate:status` | Show the status of migrations against the database.                                                         |
@@ -260,7 +264,7 @@ In development, [`app-dev.ts`](apps/backend/src/app-dev.ts) routes `/api*` reque
 
 ### End-to-end type safety (Hono RPC)
 
-The client is typed with `hc<AppType>()`, where `AppType` is the _type_ of the Hono route tree. This type is imported **type-only** through a `.d.ts` bridge, so the actual server code is erased at build time — the browser bundle never contains route handlers, Prisma, or secrets.
+The client is typed with `hc<AppType>()`, where `AppType` is the _type_ of the Hono route tree. [`@repo/api/client`](pkg/api/src/client.ts) re-exports only `type AppType`, and [`rpc.ts`](pkg/react-query/src/lib/rpc.ts) imports it **type-only**, so the actual server code is erased at build time — the browser bundle never contains route handlers, Prisma, or secrets. The client/server boundary ESLint rule enforces this by allowing `@repo/api/_route` as a type import only.
 
 ### Auth flow
 
@@ -280,7 +284,7 @@ the code they cover and use the `*.test.ts` suffix (e.g.
 [`pkg/validations/src/sign-in-validation.test.ts`](pkg/validations/src/sign-in-validation.test.ts)).
 
 ```bash
-bun run test            # run every workspace's suite
+bun run test            # run the suite in every workspace that defines a `test` script
 bun test path/to/file   # run a single file while iterating
 ```
 
@@ -329,12 +333,20 @@ Follow this loop for every task so the repo stays healthy and reviewable:
 
 2. `AppType` updates automatically — the frontend RPC client is instantly typed for `/api/me`. Because the route lives under `/api`, it's protected by the auth guard by default.
 
-3. Call it from the frontend with the typed client + `rpcFetcher`:
+3. Call it from the frontend with the typed RPC client. `api` is the `hc<AppType>()`
+   client exported from [`@repo/react-query/lib/rpc`](pkg/react-query/src/lib/rpc.ts);
+   it's already configured with `credentials: 'include'` and the `/api` base path:
 
    ```ts
-   import { api, rpcFetcher } from '@repo/api'
-   const data = await rpcFetcher(api.me.$get())
+   import { api } from '@repo/react-query/lib/rpc'
+
+   const res = await api.me.$get()
+   const data = await res.json() // fully typed from the route definition
    ```
+
+   In practice, wrap this in a TanStack Query hook next to the auth hooks in
+   [`pkg/react-query/src/auth`](pkg/react-query/src/auth) so the frontend consumes it
+   the same way as `useSession`.
 
 ### Add a shared validation schema
 
