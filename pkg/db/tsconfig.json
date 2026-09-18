@@ -1,0 +1,10 @@
+{
+  "extends": "@repo/config/tsconfig",
+  "compilerOptions": {
+    "types": ["bun"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
+}

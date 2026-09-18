@@ -1,0 +1,25 @@
+{
+    "name": "backend",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "bun run development",
+        "development": "bun --hot src/app-dev.ts ",
+        "start": "bun run prod",
+        "prod": "bun --hot src/app-prod.ts",
+        "del": "rm -rf node_modules dist"
+    },
+    "dependencies": {
+        "@better-auth/prisma-adapter": "^1.7.4",
+        "@hono/node-server": "^2.1.1",
+        "@repo/api": "workspace:*",
+        "@repo/validations": "workspace:*",
+        "@repo/db": "workspace:*",
+        "@repo/env": "workspace:*",
+        "@repo/utils": "workspace:*",
+        "vite": "^8.3.0"
+    },
+    "devDependencies": {
+        "@repo/config": "workspace:*"
+    }
+}

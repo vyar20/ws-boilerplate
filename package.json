@@ -1,0 +1,45 @@
+{
+    "name": "ws-boilerplate",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "bun --filter '*' dev",
+        "start": "bun --filter '*' start",
+        "build": "bun --filter '*' build",
+        "lint": "bun --filter '*' lint",
+        "test": "bun --filter '*' test",
+        "db:gen": "bun --filter '*' db:gen",
+        "db:push": "bun --filter '*' db:push",
+        "db:seed": "bun --filter '*' db:seed",
+        "db:migrate": "bun --filter '*' db:migrate",
+        "db:migrate:deploy": "bun --filter '*' db:migrate:deploy",
+        "db:migrate:status": "bun --filter '*' db:migrate:status",
+        "db:std": "bun --filter '*' db:std",
+        "auth:gen": "bun --filter '*' auth:gen",
+        "del": "bun --filter '*' del && rm -rf node_modules"
+    },
+    "workspaces": [
+        "pkg/*",
+        "apps/*"
+    ],
+    "packageManager": "bun@1.3.14",
+    "dependencies": {
+        "@tanstack/react-query": "^5.102.8",
+        "better-auth": "^1.7.4",
+        "hono": "^4.13.7",
+        "prettier-plugin-tailwindcss": "^0.8.1",
+        "react": "^19.2.8",
+        "react-dom": "^19.2.8",
+        "react-router": "^8.3.1",
+        "zod": "^4.6.4"
+    },
+    "devDependencies": {
+        "@types/bun": "^1.4.2",
+        "@types/node": "^26.5.1",
+        "eslint": "^10.10.0",
+        "jiti": "^2.7.0",
+        "prettier": "^3.9.6",
+        "@types/react": "^19.2.18",
+        "@types/react-dom": "^19.2.7"
+    }
+}

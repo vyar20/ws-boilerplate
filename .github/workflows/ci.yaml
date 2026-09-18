@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  ci:
+    name: linting - test - build
+    runs-on: ubuntu-latest
+
+    # Ephemeral PostgreSQL used only to validate that migrations apply cleanly.
+    # Credentials/host/db match the dummy DATABASE_URL created below.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install deps
+        run: bun install --frozen-lockfile
+
+      # Dummy env used only for codegen/lint/test/build in CI.
+      # `prisma generate` does NOT connect to the database, so these
+      # non-functional placeholders are enough to satisfy env validation.
+      # Real values must come from GitHub Secrets, never be committed.
+      - name: Create dummy env for codegen
+        run: |
+          cat > apps/backend/.env <<'EOF'
+          NODE_ENV=development
+          PORT=3000
+          DATABASE_URL=postgresql://ci:ci@localhost:5432/ci
+          BETTER_AUTH_SECRET=ci-dummy-better-auth-secret-000000000000
+          BETTER_AUTH_URL=http://localhost:3000
+          ENCRYPTION_KEY=ci-dummy-encryption-key-00000000000000000
+          EOF
+
+      - name: Make logs dir
+        run: mkdir logs
+
+      - name: Generate Prisma client
+        run: bun run db:gen
+
+      # Apply migrations to the ephemeral Postgres service. This fails the build
+      # if a committed migration is malformed or out of sync with the schema.
+      - name: Run database migrations
+        run: bun run db:migrate:deploy
+
+      - name: linting
+        run: bun run lint
+
+      - name: test
+        run: bun run test
+
+      - name: build
+        run: bun run build

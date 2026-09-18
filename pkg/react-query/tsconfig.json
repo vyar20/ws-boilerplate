@@ -1,0 +1,14 @@
+{
+  "extends": "@repo/config/tsconfig",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../../apps/frontend/src/components/react-query-provider.tsx"
+  ]
+}
