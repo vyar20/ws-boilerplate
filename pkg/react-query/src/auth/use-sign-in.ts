@@ -1,7 +1,7 @@
-import { authClient } from '@repo/api'
 import { type SignInValidation } from '@repo/validations/sign-in-validation'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
+import { authClient } from '../lib/auth-client'
 
 export const useSignIn = () => {
   const navigate = useNavigate()

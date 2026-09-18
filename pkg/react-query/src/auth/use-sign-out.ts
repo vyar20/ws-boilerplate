@@ -1,6 +1,6 @@
-import { authClient } from '@repo/api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
+import { authClient } from '../lib/auth-client'
 
 export const useSignOut = () => {
   const navigate = useNavigate()

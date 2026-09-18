@@ -14,8 +14,5 @@ export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
     [theme]
   )
 
-  // useEffect(() => {
-  //   document.documentElement.setAttribute('data-theme', theme)
-  // }, [])
   return <>{children}</>
 }

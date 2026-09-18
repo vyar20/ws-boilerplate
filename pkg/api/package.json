@@ -8,7 +8,7 @@
         "del": "rm -rf node_modules dist"
     },
     "exports": {
-        ".": "./src/client.ts",
+        "./client": "./src/client.ts",
         "./_route": "./src/_route.ts",
         "./auth": "./src/lib/auth.ts"
     },
