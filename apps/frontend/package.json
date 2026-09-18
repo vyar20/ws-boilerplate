@@ -12,7 +12,7 @@
     "@base-ui/react": "^1.8.0",
     "@fontsource-variable/roboto": "^5.3.0",
     "@hookform/resolvers": "^5.9.1",
-    "@repo/api": "workspace:*",
+    "@repo/context": "workspace:*",
     "@repo/react-query": "workspace:*",
     "@repo/utils": "workspace:*",
     "@repo/validations": "workspace:*",

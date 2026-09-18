@@ -1,13 +1,18 @@
-import {
-  ThemeProvider as NextThemeProvider,
-  type ThemeProviderProps
-} from 'next-themes'
-import type { FC } from 'react'
+import { themeContext } from '@repo/context/theme-context'
+import { useEffect, type FC, type ReactNode } from 'react'
+
+type ThemeProviderProps = {
+  children?: ReactNode
+}
 
 export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
-  return (
-    <NextThemeProvider attribute='class' enableSystem defaultTheme='system'>
-      {children}
-    </NextThemeProvider>
+  const theme = themeContext((state) => state.theme)
+  console.log({ theme })
+
+  useEffect(
+    () => document.querySelector('html')?.setAttribute('class', theme),
+    [theme]
   )
+
+  return <>{children}</>
 }

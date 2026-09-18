@@ -6,10 +6,17 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 import { Field, FieldGroup } from '@/components/ui/field'
 import { Form } from '@/components/ui/form'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { themeContext } from '@repo/context/theme-context'
 import { useSignIn } from '@repo/react-query/auth/use-sign-in'
 import { useSignUp } from '@repo/react-query/auth/use-sign-up'
 import {
@@ -24,8 +31,28 @@ import { Loader } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
 export const Root = () => {
+  const { setTheme } = themeContext()
   return (
     <div className='flex h-screen w-full flex-col items-center justify-center gap-4'>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant='outline' className='absolute top-4 right-4'>
+              Theme
+            </Button>
+          }
+        />
+
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={() => setTheme('light')}>
+            Light
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme('dark')}>
+            Dark
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <div className='text-center'>
         <h1 className='font-bold'>
           Welcome to Bun + Workspace + Hono + Better Auth Boilerplate

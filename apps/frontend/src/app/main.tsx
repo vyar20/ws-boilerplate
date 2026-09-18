@@ -1,11 +1,11 @@
 import { ReactQueryProvider } from '@/components/react-query-provider'
 import { SessionProvider } from '@/components/session-provider'
 import { ThemeProvider } from '@/components/theme-provider.tsx'
+import { Toaster } from '@/components/ui/toast'
 import '@/styles/globals.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes, type RouteObject } from 'react-router'
-import { Toaster } from 'sonner'
 import { router } from './router'
 
 const renderRoutes = (routes: RouteObject[]) => {
