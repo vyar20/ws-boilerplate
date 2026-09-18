@@ -13,6 +13,7 @@
         "react-dom": "^19.2.8",
         "react-router": "^8.3.1",
         "zod": "^4.6.4",
+        "zustand": "^5.0.15",
       },
       "devDependencies": {
         "@types/bun": "^1.4.2",
@@ -49,6 +50,7 @@
         "@fontsource-variable/roboto": "^5.3.0",
         "@hookform/resolvers": "^5.9.1",
         "@repo/api": "workspace:*",
+        "@repo/context": "workspace:*",
         "@repo/react-query": "workspace:*",
         "@repo/utils": "workspace:*",
         "@repo/validations": "workspace:*",
@@ -56,7 +58,6 @@
         "class-variance-authority": "^0.7.1",
         "cn": "^0.3.0",
         "lucide-react": "^1.45.0",
-        "next-themes": "^0.4.6",
         "react-hook-form": "^7.88.0",
         "shadcn": "^4.21.0",
         "sonner": "^2.0.8",
@@ -104,6 +105,13 @@
       "devDependencies": {
         "@eslint/js": "^10.0.1",
         "typescript-eslint": "^8.70.0",
+      },
+    },
+    "pkg/context": {
+      "name": "@repo/context",
+      "version": "1.0.0",
+      "devDependencies": {
+        "@repo/config": "workspace:*",
       },
     },
     "pkg/db": {
@@ -398,6 +406,8 @@
     "@repo/api": ["@repo/api@workspace:pkg/api"],
 
     "@repo/config": ["@repo/config@workspace:pkg/config"],
+
+    "@repo/context": ["@repo/context@workspace:pkg/context"],
 
     "@repo/db": ["@repo/db@workspace:pkg/db"],
 
@@ -1093,8 +1103,6 @@
 
     "negotiator": ["negotiator@1.1.0", "", { "dependencies": { "content-type": "^2.1.0" } }, "sha512-NMPBRMJgiQHjbd8phG3Vebdx4kZ1H121rbl5IkMqeOsahptB9BKo/d7oJ3zTXqTgagn2bWlNSXkh0QUGM31RYg=="],
 
-    "next-themes": ["next-themes@0.4.6", "", { "peerDependencies": { "react": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc", "react-dom": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc" } }, "sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA=="],
-
     "node-releases": ["node-releases@2.0.55", "", {}, "sha512-mIrE/Cw9y+9Au6dS5vDKDhQza9YvG6w+ZrS6X+ZzA7yFW/soAeaups4Qzn1bL6g5FVy8WtP79+0j82oPIbqRjQ=="],
 
     "npm-run-path": ["npm-run-path@6.0.0", "", { "dependencies": { "path-key": "^4.0.0", "unicorn-magic": "^0.3.0" } }, "sha512-9qny7Z9DsQU8Ou39ERsPU4OZQlSTP47ShQzuKZ6PRXpYLtIFgl/DEBYEXKlvcEa+9tHVcK8CF81Y2V72qaZhWA=="],
@@ -1430,6 +1438,8 @@
     "zod-to-json-schema": ["zod-to-json-schema@3.25.2", "", { "peerDependencies": { "zod": "^3.25.28 || ^4" } }, "sha512-O/PgfnpT1xKSDeQYSCfRI5Gy3hPf91mKVDuYLUHZJMiDFptvP41MSnWofm8dnCm0256ZNfZIM7DSzuSMAFnjHA=="],
 
     "zod-validation-error": ["zod-validation-error@4.0.2", "", { "peerDependencies": { "zod": "^3.25.0 || ^4.0.0" } }, "sha512-Q6/nZLe6jxuU80qb/4uJ4t5v2VEZ44lzQjPDhYJNztRQ4wyWc6VF3D3Kb/fAuPetZQnhS3hnajCf9CsWesghLQ=="],
+
+    "zustand": ["zustand@5.0.15", "", { "peerDependencies": { "@types/react": ">=18.0.0", "immer": ">=9.0.6", "react": ">=18.0.0", "use-sync-external-store": ">=1.2.0" }, "optionalPeers": ["@types/react", "immer", "react", "use-sync-external-store"] }, "sha512-MpSEjRiBkA9crSYeOUH32rJC7SVqAbm0Fqcqge/bUi2PPoLcBWKOsG+C8mevmpr8TwXHBVkChbbJiyvkE+i/3A=="],
 
     "@babel/core/semver": ["semver@6.3.1", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA=="],
 
