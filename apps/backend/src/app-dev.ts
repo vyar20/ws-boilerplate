@@ -3,7 +3,7 @@ import { env } from '@repo/env'
 import { HTTPCode, HTTPText } from '@repo/utils/utils'
 import { createServer } from 'node:http'
 import { createServer as createViteServer } from 'vite'
-import { app, frontendPath } from './app'
+import app, { frontendPath } from './app'
 
 const honoHandler = getRequestListener(app.fetch)
 

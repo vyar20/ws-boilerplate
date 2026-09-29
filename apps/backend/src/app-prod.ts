@@ -1,21 +1,5 @@
 import { env } from '@repo/env'
-import { serveStatic } from 'hono/bun'
-import { app, frontendPath } from './app'
-
-app.all(
-  '/assets/*',
-  serveStatic({
-    root: frontendPath
-  })
-)
-
-app.all(
-  '*',
-  serveStatic({
-    root: frontendPath,
-    path: 'index.html'
-  })
-)
+import app from './app'
 
 export default {
   port: env.PORT,

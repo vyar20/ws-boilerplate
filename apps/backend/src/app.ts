@@ -3,6 +3,7 @@ import { env } from '@repo/env'
 import { ErrorHandler, HTTPCode, HTTPText } from '@repo/utils'
 import { logger } from '@repo/utils/logger'
 import { Hono } from 'hono'
+import { serveStatic } from 'hono/bun'
 import { type ContentfulStatusCode } from 'hono/utils/http-status'
 import path from 'node:path'
 import { auth } from '../../../pkg/api/src/lib/auth'
@@ -46,4 +47,21 @@ app.onError((err, c) => {
   )
 })
 
-export { app }
+if (env.NODE_ENV === 'production') {
+  app.all(
+    '/assets/*',
+    serveStatic({
+      root: frontendPath
+    })
+  )
+
+  app.all(
+    '*',
+    serveStatic({
+      root: frontendPath,
+      path: 'index.html'
+    })
+  )
+}
+
+export default app
