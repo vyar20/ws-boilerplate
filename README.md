@@ -76,6 +76,7 @@ Fork it, set a few environment variables, and start building.
 ├── scripts/            # Workspace tooling
 │   ├── switch-workspace.ts          # Mode switcher (bun ↔ turbo)
 │   ├── turbo.template.json          # Turborepo task pipeline template
+│   ├── vercel.template.json         # Vercel monorepo config template
 │   ├── workspace-scripts.bun.json   # Root scripts for bun mode
 │   └── workspace-scripts.turbo.json # Root scripts for turbo mode
 ├── logs/               # Pino log output (gitignored)
@@ -329,17 +330,24 @@ Follow this loop for every task so the repo stays healthy and reviewable:
 The repo ships in **Bun workspace mode** by default. You can switch to Turborepo for caching and parallel task orchestration without touching any workspace `package.json` files.
 
 ```bash
-bun run switch:turbo   # activate — creates turbo.json, switches root scripts to turbo run
-bun run switch:bun     # revert  — deletes turbo.json, restores bun --filter '*' scripts
+bun run switch:turbo   # activate — creates turbo.json + vercel.json, switches root scripts to turbo run
+bun run switch:bun     # revert  — deletes turbo.json + vercel.json, restores bun --filter '*' scripts
 ```
 
-The Turborepo task pipeline is defined in [`scripts/turbo.template.json`](scripts/turbo.template.json). If you add a new root-level script, register it in all three files:
+Switching to Turborepo mode generates two files at the root:
+
+| File | Template | Purpose |
+| ----------- | ------------------------------------ | --------------------------------------- |
+| `turbo.json` | [`scripts/turbo.template.json`](scripts/turbo.template.json) | Turborepo task pipeline (cache, dependsOn, persistent) |
+| `vercel.json` | [`scripts/vercel.template.json`](scripts/vercel.template.json) | Vercel monorepo services + API rewrites |
+
+Both files are absent in bun mode and should not be committed.
+
+If you add a new root-level script, register it in all three places:
 
 1. [`scripts/workspace-scripts.bun.json`](scripts/workspace-scripts.bun.json) — bun version
 2. [`scripts/workspace-scripts.turbo.json`](scripts/workspace-scripts.turbo.json) — turbo version
-3. [`scripts/turbo.template.json`](scripts/turbo.template.json) — task config (cache, dependsOn, persistent)
-
-> `turbo.json` is gitignored-equivalent — it is generated on switch and should not be committed.
+3. [`scripts/turbo.template.json`](scripts/turbo.template.json) — task config
 
 ---
 

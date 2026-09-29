@@ -32,17 +32,20 @@ pkg.scripts = {
 
 writeFileSync(pkgPath, JSON.stringify(pkg, null, indent) + "\n");
 
-// --- turbo.json ---
-const turboJsonPath = resolve(ROOT, "turbo.json");
-const turboTemplatePath = resolve(__dirname, "turbo.template.json");
+// --- turbo.json + vercel.json ---
+const managedFiles: Array<{ src: string; dest: string }> = [
+	{ src: resolve(__dirname, "turbo.template.json"), dest: resolve(ROOT, "turbo.json") },
+	{ src: resolve(__dirname, "vercel.template.json"), dest: resolve(ROOT, "vercel.json") },
+];
 
-if (mode === "turbo") {
-	copyFileSync(turboTemplatePath, turboJsonPath);
-	console.log("Created turbo.json");
-} else {
-	if (existsSync(turboJsonPath)) {
-		rmSync(turboJsonPath);
-		console.log("Removed turbo.json");
+for (const { src, dest } of managedFiles) {
+	const name = dest.split("/").pop();
+	if (mode === "turbo") {
+		copyFileSync(src, dest);
+		console.log(`Created ${name}`);
+	} else if (existsSync(dest)) {
+		rmSync(dest);
+		console.log(`Removed ${name}`);
 	}
 }
 
