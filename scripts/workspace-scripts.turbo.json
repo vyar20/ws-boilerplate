@@ -1,0 +1,16 @@
+{
+	"dev": "turbo run dev",
+	"start": "turbo run start",
+	"build": "turbo run build",
+	"lint": "turbo run lint",
+	"test": "turbo run test",
+	"db:gen": "turbo run db:gen",
+	"db:push": "turbo run db:push",
+	"db:seed": "turbo run db:seed",
+	"db:migrate": "turbo run db:migrate",
+	"db:migrate:deploy": "turbo run db:migrate:deploy",
+	"db:migrate:status": "turbo run db:migrate:status",
+	"db:std": "turbo run db:std",
+	"auth:gen": "turbo run auth:gen",
+	"del": "turbo run del && rm -rf node_modules"
+}

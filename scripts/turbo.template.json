@@ -1,0 +1,52 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"ui": "tui",
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": ["dist/**", "build/**"]
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"start": {
+			"cache": false,
+			"persistent": true
+		},
+		"lint": {
+			"outputs": []
+		},
+		"test": {
+			"outputs": []
+		},
+		"db:gen": {
+			"cache": false
+		},
+		"db:push": {
+			"cache": false
+		},
+		"db:seed": {
+			"cache": false
+		},
+		"db:migrate": {
+			"cache": false
+		},
+		"db:migrate:deploy": {
+			"cache": false
+		},
+		"db:migrate:status": {
+			"cache": false
+		},
+		"db:std": {
+			"cache": false,
+			"persistent": true
+		},
+		"auth:gen": {
+			"cache": false
+		},
+		"del": {
+			"cache": false
+		}
+	}
+}

@@ -16,7 +16,9 @@
         "db:migrate:status": "bun --filter '*' db:migrate:status",
         "db:std": "bun --filter '*' db:std",
         "auth:gen": "bun --filter '*' auth:gen",
-        "del": "bun --filter '*' del && rm -rf node_modules"
+        "del": "bun --filter '*' del && rm -rf node_modules",
+        "switch:turbo": "bun scripts/switch-workspace.ts turbo",
+        "switch:bun": "bun scripts/switch-workspace.ts bun"
     },
     "workspaces": [
         "pkg/*",
@@ -37,10 +39,11 @@
     "devDependencies": {
         "@types/bun": "^1.4.2",
         "@types/node": "^26.5.1",
+        "@types/react": "^19.2.18",
+        "@types/react-dom": "^19.2.7",
         "eslint": "^10.10.0",
         "jiti": "^2.7.0",
         "prettier": "^3.9.6",
-        "@types/react": "^19.2.18",
-        "@types/react-dom": "^19.2.7"
+        "turbo": "^2.11.4"
     }
 }
