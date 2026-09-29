@@ -20,6 +20,7 @@ Fork it, set a few environment variables, and start building.
 - [How it works](#how-it-works)
 - [Testing](#testing)
 - [Contributing workflow](#contributing-workflow)
+- [Turborepo mode](#turborepo-mode)
 - [Recipes](#recipes)
 - [Production build](#production-build)
 - [Security notes](#security-notes)
@@ -72,6 +73,11 @@ Fork it, set a few environment variables, and start building.
 │   ├── react-query/    # TanStack Query hooks (auth) + the RPC & auth clients
 │   ├── utils/          # HTTP helpers, error handler, logger
 │   └── validations/    # Shared Zod schemas
+├── scripts/            # Workspace tooling
+│   ├── switch-workspace.ts          # Mode switcher (bun ↔ turbo)
+│   ├── turbo.template.json          # Turborepo task pipeline template
+│   ├── workspace-scripts.bun.json   # Root scripts for bun mode
+│   └── workspace-scripts.turbo.json # Root scripts for turbo mode
 ├── logs/               # Pino log output (gitignored)
 ├── package.json        # Root workspace + scripts
 └── README.md
@@ -202,7 +208,7 @@ build-time base URL is needed.
 
 ## Scripts
 
-Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
+Run from the repo root; each fans out across workspaces via `bun --filter '*'` (bun mode) or `turbo run` (turbo mode).
 
 | Script                      | What it does                                                                                                |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------- |
@@ -219,6 +225,8 @@ Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 | `bun run db:std`            | Open Prisma Studio.                                                                                         |
 | `bun run auth:gen`          | Regenerate Better Auth Prisma models.                                                                       |
 | `bun run del`               | Remove all `node_modules`/build output.                                                                     |
+| `bun run switch:turbo`      | Switch to Turborepo mode — creates `turbo.json` and updates root scripts to use `turbo run`.                |
+| `bun run switch:bun`        | Switch back to Bun workspace mode — removes `turbo.json` and restores `bun --filter '*'` scripts.          |
 
 ---
 
@@ -313,6 +321,25 @@ Follow this loop for every task so the repo stays healthy and reviewable:
    commits focused, and open a PR once the task is complete and the suite is green.
    Describe what changed, why, and how it was tested. Don't commit directly to
    `master`.
+
+---
+
+## Turborepo mode
+
+The repo ships in **Bun workspace mode** by default. You can switch to Turborepo for caching and parallel task orchestration without touching any workspace `package.json` files.
+
+```bash
+bun run switch:turbo   # activate — creates turbo.json, switches root scripts to turbo run
+bun run switch:bun     # revert  — deletes turbo.json, restores bun --filter '*' scripts
+```
+
+The Turborepo task pipeline is defined in [`scripts/turbo.template.json`](scripts/turbo.template.json). If you add a new root-level script, register it in all three files:
+
+1. [`scripts/workspace-scripts.bun.json`](scripts/workspace-scripts.bun.json) — bun version
+2. [`scripts/workspace-scripts.turbo.json`](scripts/workspace-scripts.turbo.json) — turbo version
+3. [`scripts/turbo.template.json`](scripts/turbo.template.json) — task config (cache, dependsOn, persistent)
+
+> `turbo.json` is gitignored-equivalent — it is generated on switch and should not be committed.
 
 ---
 
