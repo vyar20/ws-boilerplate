@@ -1,5 +1,4 @@
 import { ReactQueryProvider } from '@/components/react-query-provider'
-import { SessionProvider } from '@/components/session-provider'
 import { ThemeProvider } from '@/components/theme-provider.tsx'
 import { Toaster } from '@/components/ui/toast'
 import '@/styles/globals.css'
@@ -21,20 +20,14 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <ThemeProvider>
         <ReactQueryProvider>
-          <SessionProvider>
-            <Routes>
-              {router.map((route) => (
-                <Route
-                  key={route.path}
-                  path={route.path}
-                  element={route.element}
-                >
-                  {route.children && renderRoutes(route.children)}
-                </Route>
-              ))}
-            </Routes>
-            <Toaster />
-          </SessionProvider>
+          <Routes>
+            {router.map((route) => (
+              <Route key={route.path} path={route.path} element={route.element}>
+                {route.children && renderRoutes(route.children)}
+              </Route>
+            ))}
+          </Routes>
+          <Toaster />
         </ReactQueryProvider>
       </ThemeProvider>
     </BrowserRouter>

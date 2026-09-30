@@ -35,7 +35,7 @@ app.onError((err, c) => {
     )
   }
   logger.error({
-    message: HTTPText.INTERNAL_SERVER_ERROR
+    message: err.message
   })
 
   return c.json(

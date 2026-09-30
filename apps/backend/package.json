@@ -6,7 +6,8 @@
         "dev": "bun run development",
         "development": "bun --hot src/app-dev.ts ",
         "start": "bun run prod",
-        "prod": "bun --hot src/app-prod.ts",
+        "prod": "bun src/app-prod.ts",
+        "typecheck": "tsc --noEmit",
         "del": "rm -rf node_modules dist"
     },
     "dependencies": {

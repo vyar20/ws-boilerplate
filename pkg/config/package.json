@@ -5,6 +5,7 @@
     "type": "module",
     "scripts": {
         "test": "bun test",
+        "typecheck": "tsc --noEmit",
         "del": "rm -rf node_modules dist"
     },
     "exports": {

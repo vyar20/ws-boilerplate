@@ -13,6 +13,7 @@
         "db:std": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun prisma studio",
         "auth:gen": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun run auth generate --config=../api/src/lib/auth.ts -y",
         "lint": "eslint .",
+        "typecheck": "tsc --noEmit",
         "del": "rm -rf node_modules dist"
     },
     "exports": {

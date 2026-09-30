@@ -10,6 +10,7 @@ export const useSession = () => {
       if (res.error) throw new Error(res.error.message)
 
       return res.data
-    }
+    },
+    retry: false
   })
 }

@@ -33,11 +33,11 @@ export const getHTTPCode = (httpText: keyof typeof HTTPText) =>
 export class ErrorHandler extends Error {
   message: string
   reason: unknown
-  code: keyof typeof HTTPCode
+  code: number
   constructor(message: string, code: keyof typeof HTTPCode, reason?: unknown) {
     super()
     this.message = message
-    this.code = code
+    this.code = HTTPCode[code]
     this.reason = reason
   }
 }
