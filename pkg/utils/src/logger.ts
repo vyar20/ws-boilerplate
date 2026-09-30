@@ -13,31 +13,6 @@ const transport = pino.transport({
       level: 'error',
       target: 'pino/file',
       options: { destination: path.join(logPath, 'error.log') }
-    },
-    {
-      level: 'debug',
-      target: 'pino/file',
-      options: { destination: path.join(logPath, 'debug.log') }
-    },
-    {
-      level: 'fatal',
-      target: 'pino/file',
-      options: { destination: path.join(logPath, 'fatal.log') }
-    },
-    {
-      level: 'silent',
-      target: 'pino/file',
-      options: { destination: path.join(logPath, 'silent.log') }
-    },
-    {
-      level: 'trace',
-      target: 'pino/file',
-      options: { destination: path.join(logPath, 'trace.log') }
-    },
-    {
-      level: 'warn',
-      target: 'pino/file',
-      options: { destination: path.join(logPath, 'warn.log') }
     }
   ]
 })

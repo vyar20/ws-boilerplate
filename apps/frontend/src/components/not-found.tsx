@@ -10,7 +10,7 @@ type NotFoundProps = {
 export const NotFound: FC<NotFoundProps> = () => {
   const navigate = useNavigate()
   return (
-    <div className='relative h-screen flex-1 flex-col items-center justify-center'>
+    <div className='relative flex h-screen flex-1 flex-col items-center justify-center'>
       <div className='max-h-130'>
         <TextHoverEffect text='404' />
       </div>

@@ -16,7 +16,7 @@ export const frontendPath = path.resolve(
   env.NODE_ENV === 'development' ? '../../frontend' : '../../frontend/dist'
 )
 
-app.use(sessionMiddleware)
+app.use('/api/*', sessionMiddleware)
 app.all('/api/auth/*', (c) => auth.handler(c.req.raw))
 app.use('/api/*', isAuthenticatedMiddlware)
 app.route('/api', _route)

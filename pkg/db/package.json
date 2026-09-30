@@ -8,6 +8,7 @@
         "db:gen": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun prisma generate",
         "db:seed": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun prisma db seed",
         "db:migrate": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun prisma migrate dev",
+        "db:migrate:reset": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun prisma migrate reset --force",
         "db:migrate:deploy": "bun --env-file=../../apps/backend/.env --bun prisma migrate deploy",
         "db:migrate:status": "bun --env-file=../../apps/backend/.env --bun prisma migrate status",
         "db:std": "NODE_ENV=development bun --env-file=../../apps/backend/.env --bun prisma studio",

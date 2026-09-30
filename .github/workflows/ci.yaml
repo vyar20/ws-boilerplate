@@ -35,6 +35,9 @@ jobs:
       - name: Make logs dir
         run: mkdir logs
 
+      - name: Prisma Migration
+        run: bun run db:migrate
+
       - name: Generate Prisma client
         run: bun run db:gen
 

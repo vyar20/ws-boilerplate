@@ -72,14 +72,14 @@ describe('ErrorHandler', () => {
     expect(err).toBeInstanceOf(Error)
     expect(err).toBeInstanceOf(ErrorHandler)
     expect(err.message).toBe('nope')
-    expect(err.code).toBe('UNAUTHORIZED')
+    expect(err.code).toBe(401)
     expect(err.reason).toBe('missing session')
   })
 
   it('allows the reason to be omitted', () => {
     const err = new ErrorHandler('bad', 'BAD_REQUEST')
 
-    expect(err.code).toBe('BAD_REQUEST')
+    expect(err.code).toBe(400)
     expect(err.reason).toBeUndefined()
   })
 })
