@@ -27,5 +27,5 @@ const server = await createServer((req, res) => {
 })
 
 server.listen(env.PORT, () =>
-  console.log('Server running on: http://localhost:3000')
+  console.log(`Server running on: http://localhost:${env.PORT}`)
 )
