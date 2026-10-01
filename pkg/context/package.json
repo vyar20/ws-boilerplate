@@ -12,10 +12,13 @@
         "./*": "./src/*.ts"
     },
     "dependencies": {
-        "react": "^19.2.8",
         "zustand": "^5.0.15"
     },
     "devDependencies": {
-        "@repo/config": "workspace:*"
+        "@repo/config": "workspace:*",
+        "react": "^19.2.8"
+    },
+    "peerDependencies": {
+        "react": "^19.2.8"
     }
 }
