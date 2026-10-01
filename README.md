@@ -141,7 +141,7 @@ PORT=3000
 DATABASE_URL=postgresql://user:password@localhost:5432/mydb
 BETTER_AUTH_SECRET=replace-with-a-random-string-at-least-32-chars
 BETTER_AUTH_URL=http://localhost:3000
-ENCRYPTION_KEY=replace-with-a-random-string-at-least-32-chars
+# ENCRYPTION_KEY=optional-not-used-yet-min-32-chars
 ```
 
 > The frontend needs **no env file**. Because the API and the SPA are served from
@@ -174,17 +174,17 @@ Open **http://localhost:3000**. The frontend and the API are both served from th
 
 ## Environment variables
 
-Validated in [`pkg/env/src/env.ts`](pkg/env/src/env.ts). The app **won't start** if any are missing or invalid.
+Validated in [`pkg/env/src/env.ts`](pkg/env/src/env.ts). The app **won't start** if a required variable is missing or any variable is invalid.
 
 ### Backend — `apps/backend/.env`
 
-| Variable             | Type / rule                                  | Description                                  |
-| -------------------- | -------------------------------------------- | -------------------------------------------- |
-| `PORT`               | number                                       | Port the server listens on.                  |
-| `DATABASE_URL`       | starts with `postgres://` or `postgresql://` | PostgreSQL connection string.                |
-| `BETTER_AUTH_SECRET` | string, min 32 chars                         | Secret used by Better Auth to sign sessions. |
-| `BETTER_AUTH_URL`    | URL starting with `http`                     | Public base URL of the auth server.          |
-| `ENCRYPTION_KEY`     | string, min 32 chars                         | Reserved for app-level encrypt/decrypt.      |
+| Variable             | Type / rule                                  | Description                                                       |
+| -------------------- | -------------------------------------------- | ----------------------------------------------------------------- |
+| `PORT`               | number                                       | Port the server listens on.                                       |
+| `DATABASE_URL`       | starts with `postgres://` or `postgresql://` | PostgreSQL connection string.                                     |
+| `BETTER_AUTH_SECRET` | string, min 32 chars                         | Secret used by Better Auth to sign sessions.                      |
+| `BETTER_AUTH_URL`    | URL starting with `http`                     | Public base URL of the auth server.                               |
+| `ENCRYPTION_KEY`     | **optional**; if set, string, min 32 chars   | Reserved for app-level encrypt/decrypt. Not used by the code yet. |
 
 `NODE_ENV` (`development` | `production`) is still validated but **not set in `.env`**: each
 script sets it for you.
