@@ -221,24 +221,25 @@ build-time base URL is needed.
 
 Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 
-| Script                      | What it does                                                                                                |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `bun run dev`               | Start the backend in dev mode (Hono + Vite HMR) on one port.                                                |
-| `bun run build`             | Build the frontend for production.                                                                          |
-| `bun run start`             | Start the backend in production mode (serves the static build).                                             |
-| `bun run test`              | Run the unit test suites in each workspace that defines a `test` script (`bun test`).                       |
-| `bun run lint`              | Run ESLint in every workspace.                                                                              |
-| `bun run typecheck`         | Run `tsc --noEmit` in every workspace.                                                                      |
-| `bun run db:gen`            | Generate the Prisma client.                                                                                 |
-| `bun run db:push`           | Push the Prisma schema to the database (no migration history — dev/prototyping only).                       |
-| `bun run db:seed`           | Seed the database (runs [`pkg/db/src/seed.ts`](pkg/db/src/seed.ts)).                                        |
-| `bun run db:migrate`        | Create and apply a new migration in development (`prisma migrate dev`).                                     |
-| `bun run db:migrate:reset`  | ⚠️ **Drops all data**, then re-applies every migration (`prisma migrate reset --force`). Dev only.          |
-| `bun run db:migrate:deploy` | Apply all pending migrations without generating new ones (`prisma migrate deploy`) — for CI and production. |
-| `bun run db:migrate:status` | Show the status of migrations against the database.                                                         |
-| `bun run db:std`            | Open Prisma Studio.                                                                                         |
-| `bun run auth:gen`          | Regenerate Better Auth Prisma models.                                                                       |
-| `bun run del`               | Remove all `node_modules`/build output.                                                                     |
+| Script                      | What it does                                                                                                               |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `bun run dev`               | Start the backend in dev mode (Hono + Vite HMR) on one port.                                                               |
+| `bun run build`             | Build the frontend for production.                                                                                         |
+| `bun run start`             | Start the backend in production mode (serves the static build).                                                            |
+| `bun run test`              | Run the unit test suites in each workspace that defines a `test` script (`bun test`). No database needed.                  |
+| `bun run test:integration`  | Run `*.integration.test.ts` against the real database in `apps/backend/.env`. See [Integration tests](#integration-tests). |
+| `bun run lint`              | Run ESLint in every workspace.                                                                                             |
+| `bun run typecheck`         | Run `tsc --noEmit` in every workspace.                                                                                     |
+| `bun run db:gen`            | Generate the Prisma client.                                                                                                |
+| `bun run db:push`           | Push the Prisma schema to the database (no migration history — dev/prototyping only).                                      |
+| `bun run db:seed`           | Seed the database (runs [`pkg/db/src/seed.ts`](pkg/db/src/seed.ts)).                                                       |
+| `bun run db:migrate`        | Create and apply a new migration in development (`prisma migrate dev`).                                                    |
+| `bun run db:migrate:reset`  | ⚠️ **Drops all data**, then re-applies every migration (`prisma migrate reset --force`). Dev only.                         |
+| `bun run db:migrate:deploy` | Apply all pending migrations without generating new ones (`prisma migrate deploy`) — for CI and production.                |
+| `bun run db:migrate:status` | Show the status of migrations against the database.                                                                        |
+| `bun run db:std`            | Open Prisma Studio.                                                                                                        |
+| `bun run auth:gen`          | Regenerate Better Auth Prisma models.                                                                                      |
+| `bun run del`               | Remove all `node_modules`/build output.                                                                                    |
 
 ---
 
@@ -331,6 +332,27 @@ External boundaries (Better Auth, Prisma, env, logger, router) are replaced with
 Frontend test files are excluded from `tsconfig.app.json` (so `bun:test` types
 never reach the browser build) and type-checked by `tsconfig.test.json` instead.
 
+### Integration tests
+
+`*.integration.test.ts` files run the real stack (Better Auth, Prisma, `@repo/env`)
+against a real Postgres, with nothing mocked. [`auth.integration.test.ts`](apps/backend/src/auth.integration.test.ts)
+walks sign-up → weak password → duplicate email → wrong password → sign-in → `GET /api`
+→ sign-out through `app.request()`, and spies on the logger to check that only the
+successful steps log `USER_CREATED` / `USER_LOGGED_IN`.
+
+```bash
+bun run db:migrate:deploy   # the database in apps/backend/.env must be migrated
+bun run test:integration
+```
+
+- **Needs a database:** it uses `DATABASE_URL` from `apps/backend/.env`. Point it at a
+  local dev or throwaway database, never a shared or production one. To use another
+  database for one run: `DATABASE_URL=postgresql://…/test_db bun run test:integration`.
+- **Cleans up after itself:** each run uses a unique email and deletes that user (and
+  its sessions/accounts) in `afterAll`.
+- **Kept out of `bun run test`:** the unit `test` script ignores
+  `**/*.integration.test.ts`, so unit tests never need a database.
+
 **Always ship code with tests.** Every change to behavior — a new API route, a
 validation schema, a utility, a bug fix — must come with unit tests that cover the
 happy path and the meaningful failure/edge cases (invalid input, auth denials,
@@ -350,7 +372,8 @@ bun run test
 2. Installs dependencies with the Bun version pinned in `packageManager` (`--frozen-lockfile`).
 3. Writes a dummy `apps/backend/.env` (no `NODE_ENV`, same as local).
 4. Applies migrations with `db:migrate:deploy`, then runs `db:gen`.
-5. Runs `lint`, `test`, and `typecheck` across all workspaces, then `build`.
+5. Runs `lint`, unit `test`, `test:integration` (against the Postgres service),
+   `typecheck` and `build`. The job is named `lint - test - typecheck - build`.
 
 A PR should not be merged until this check is green.
 
