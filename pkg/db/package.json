@@ -27,7 +27,7 @@
     "devDependencies": {
         "@repo/config": "workspace:*",
         "@types/pg": "^8.23.1",
-        "auth": "^1.7.4",
+        "auth": "^1.7.6",
         "prisma": "^7"
     }
 }
