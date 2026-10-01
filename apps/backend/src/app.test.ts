@@ -169,6 +169,29 @@ describe('security headers', () => {
       expect(res.headers.get('referrer-policy')).toBe('no-referrer')
     }
   )
+
+  it('sends a Content-Security-Policy with the expected directives', async () => {
+    const res = await app.request('/api/auth/get-session')
+    const csp = res.headers.get('content-security-policy') ?? ''
+    const directives = Object.fromEntries(
+      csp.split(';').map((d) => {
+        const [name, ...values] = d.trim().split(/\s+/)
+        return [name, values.join(' ')]
+      })
+    )
+
+    expect(directives).toEqual({
+      'default-src': "'self'",
+      'script-src': "'self'",
+      'style-src': "'self' 'unsafe-inline'",
+      'img-src': "'self' data:",
+      'font-src': "'self' data:",
+      'connect-src': "'self'",
+      'frame-ancestors': "'none'",
+      'base-uri': "'self'",
+      'form-action': "'self'"
+    })
+  })
 })
 
 describe('csrf', () => {

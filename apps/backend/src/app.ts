@@ -19,7 +19,27 @@ export const frontendPath = path.resolve(
   env.NODE_ENV === 'development' ? '../../frontend' : '../../frontend/dist'
 )
 
-app.use('*', secureHeaders())
+app.use(
+  '*',
+  secureHeaders({
+    contentSecurityPolicy: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      // 'unsafe-inline' (styles) and data: (img/font) are headroom, not a
+      // measured need: a headless Chrome pass over sign-in/up, dashboard, theme
+      // menu and the 404 page showed no violations without them, because React
+      // and motion set styles via CSSOM, which CSP does not restrict. Drop them
+      // once toasts and any <style>-injecting library are verified too.
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:'],
+      fontSrc: ["'self'", 'data:'],
+      connectSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"]
+    }
+  })
+)
 // Rejects cross-site form-style writes (form/multipart/text/plain bodies) by
 // Origin / Sec-Fetch-Site. Cross-origin JSON is already stopped by the CORS
 // preflight, since no CORS is enabled. The origin comes from BETTER_AUTH_URL
