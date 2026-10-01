@@ -66,8 +66,11 @@ describe('app', () => {
   })
 
   it('lets /api/auth/* through to Better Auth without a session', async () => {
+    // JSON, like the Better Auth client sends; a bare POST would hit csrf().
     const res = await app.request('/api/auth/sign-in/email', {
-      method: 'POST'
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: '{}'
     })
 
     expect(res.status).toBe(200)
@@ -109,5 +112,75 @@ describe('app', () => {
     expect(JSON.parse(body)).toEqual({ message: 'INTERNAL_SERVER_ERROR' })
     expect(body).not.toContain('hunter2')
     expect(logError).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('security headers', () => {
+  it.each(['/api', '/api/auth/get-session', '/test/bad'])(
+    'are set on %s',
+    async (path) => {
+      const res = await app.request(path)
+
+      expect(res.headers.get('x-content-type-options')).toBe('nosniff')
+      expect(res.headers.get('x-frame-options')).toBe('SAMEORIGIN')
+      expect(res.headers.get('referrer-policy')).toBe('no-referrer')
+    }
+  )
+})
+
+describe('csrf', () => {
+  // app.request() resolves against http://localhost, so that is "same origin".
+  const formPost = (path: string, origin: string) =>
+    app.request(path, {
+      method: 'POST',
+      headers: {
+        origin,
+        'content-type': 'application/x-www-form-urlencoded'
+      },
+      body: 'email=a%40b.com'
+    })
+
+  it('rejects a cross-origin form POST to /api with 403', async () => {
+    currentSession = signedIn
+
+    const res = await formPost('/api', 'https://evil.example')
+
+    expect(res.status).toBe(403)
+  })
+
+  it('rejects a cross-origin form POST before it reaches Better Auth', async () => {
+    const res = await formPost('/api/auth/sign-in/email', 'https://evil.example')
+
+    expect(res.status).toBe(403)
+    expect(authHandler).not.toHaveBeenCalled()
+  })
+
+  it('lets a same-origin form POST through', async () => {
+    const res = await formPost('/api/auth/sign-in/email', 'http://localhost')
+
+    expect(res.status).toBe(200)
+    expect(authHandler).toHaveBeenCalledTimes(1)
+  })
+
+  it('lets a same-origin browser request through via Sec-Fetch-Site', async () => {
+    const res = await app.request('/api/auth/sign-out', {
+      method: 'POST',
+      headers: { 'sec-fetch-site': 'same-origin' }
+    })
+
+    expect(res.status).toBe(200)
+  })
+
+  it('leaves JSON requests to the CORS preflight', async () => {
+    const res = await app.request('/api/auth/sign-in/email', {
+      method: 'POST',
+      headers: {
+        origin: 'https://evil.example',
+        'content-type': 'application/json'
+      },
+      body: '{}'
+    })
+
+    expect(res.status).toBe(200)
   })
 })
