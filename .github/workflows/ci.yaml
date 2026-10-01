@@ -9,6 +9,21 @@ jobs:
   ci:
     name: linting - test - typecheck
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -16,7 +31,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version-file: package.json
 
       - name: Install deps
         run: bun install --frozen-lockfile
@@ -36,7 +51,7 @@ jobs:
         run: mkdir logs
 
       - name: Prisma Migration
-        run: bun run db:migrate
+        run: bun run db:migrate:deploy
 
       - name: Generate Prisma client
         run: bun run db:gen
