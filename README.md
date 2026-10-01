@@ -68,7 +68,7 @@ Fork it, set a few environment variables, and start building.
 │   └── frontend/       # React + Vite SPA
 ├── pkg/
 │   ├── api/            # Hono routes, Better Auth setup, AppType for the RPC client
-│   ├── config/         # Shared tsconfig / eslint / prettier
+│   ├── config/         # Shared tsconfig / eslint / prettier / happy-dom test preload
 │   ├── context/        # Client state stores (Zustand theme store)
 │   ├── db/             # Prisma schema, models, generated client
 │   ├── env/            # Zod-validated environment variables
@@ -88,28 +88,30 @@ Fork it, set a few environment variables, and start building.
 Every workspace package is published internally as `@repo/<name>` and consumed via `workspace:*`.
 
 **Dependencies live where they are imported.** Each workspace declares its own runtime
-dependencies (including peers such as `react` for `zustand` or `zod` for
-`@hookform/resolvers`); the root `package.json` only holds shared tooling
+dependencies (including peers such as `zod` for `@hookform/resolvers`). Shared React
+packages (`@repo/react-query`, `@repo/context`) list `react` (and `react-dom` where
+used) as **`peerDependencies`**, plus `devDependencies` for their tests, so the app
+decides which React is installed. The root `package.json` only holds shared tooling
 devDependencies (TypeScript types, ESLint, Prettier, test libraries). Add a package
 with `bun add <pkg> --cwd <workspace>`, not at the root.
 
 ### Apps
 
-| App                 | Description                                                                                                                                                                                                                                                                                                                                                                                   |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`apps/backend`**  | The Hono server. [`app.ts`](apps/backend/src/app.ts) builds the app (security headers → CSRF check → session middleware → Better Auth handler → auth guard → API routes → error handler). [`app-dev.ts`](apps/backend/src/app-dev.ts) runs it with Vite middleware for HMR; [`app-prod.ts`](apps/backend/src/app-prod.ts) serves the static build. Both API and frontend run on **one port**. |
-| **`apps/frontend`** | React 19 SPA (Vite + Tailwind v4). Providers for React Query and theme; route guards in [`auth-guard.tsx`](apps/frontend/src/components/auth-guard.tsx); auth forms built with react-hook-form + shared Zod schemas; toasts via the [shadcn base-ui Toast](https://ui.shadcn.com/docs/components/base/toast).                                                                                 |
+| App                 | Description                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`apps/backend`**  | The Hono server. [`app.ts`](apps/backend/src/app.ts) builds the app (security headers + CSP → CSRF check → session middleware → Better Auth handler → auth guard → API routes → `/api` 404 fallback → error handler). [`app-dev.ts`](apps/backend/src/app-dev.ts) runs it with Vite middleware for HMR; [`app-prod.ts`](apps/backend/src/app-prod.ts) serves the static build. Both API and frontend run on **one port**. |
+| **`apps/frontend`** | React 19 SPA (Vite + Tailwind v4). Providers for React Query and theme; route guards in [`auth-guard.tsx`](apps/frontend/src/components/auth-guard.tsx); auth forms built with react-hook-form + shared Zod schemas; toasts via the [shadcn base-ui Toast](https://ui.shadcn.com/docs/components/base/toast).                                                                                                             |
 
 ### Packages
 
 | Package                 | Purpose                                                                                                                                            | Key exports                                                                                                                                      |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **`@repo/api`**         | API layer. Hono route definitions and Better Auth configuration. Exposes the route _type_ (`AppType`) that the RPC client is built from.           | `./client` → `AppType` (type-only), `./_route` (route + `AppType` + `Env`), `./auth` (server-only Better Auth instance)                          |
-| **`@repo/db`**          | Prisma client (singleton) + `pg` adapter and the schema/models (`User`, `Session`, `Account`, `Verification`).                                     | `.` → `db`                                                                                                                                       |
+| **`@repo/db`**          | Prisma client (singleton) + `pg` adapter and the schema/models (`User`, `Session`, `Account`, `Verification`, `RateLimit`).                        | `.` → `db`                                                                                                                                       |
 | **`@repo/env`**         | Loads and **validates** `process.env` with Zod. Exits the process on invalid/missing vars, and returns _coerced_ values (e.g. `PORT` as a number). | `.` → `env`                                                                                                                                      |
 | **`@repo/validations`** | Shared Zod schemas used on both client and server (sign-in, sign-up, password policy).                                                             | `./sign-in-validation`, `./sign-up-validation`                                                                                                   |
 | **`@repo/react-query`** | TanStack Query hooks that wrap the auth client, plus the typed Hono RPC client (`api`) and the Better Auth browser client (`authClient`).          | `./auth/use-session`, `./auth/use-sign-in`, `./auth/use-sign-up`, `./auth/use-sign-out`, `./lib/rpc` (`api`), `./lib/auth-client` (`authClient`) |
-| **`@repo/context`**     | Client-side state stores. Currently a Zustand store for the light/dark theme.                                                                      | `./theme-context` (`themeContext`)                                                                                                               |
+| **`@repo/context`**     | Client-side state stores. Currently a Zustand store for the light/dark theme.                                                                      | `./theme-context` (`themeContext`, `getInitialTheme`)                                                                                            |
 | **`@repo/utils`**       | Cross-cutting helpers: `HTTPCode`/`HTTPText`, `ErrorHandler`, `EventLogType`, `maskEmail`, a promise-tuple helper `p`, and the Pino `logger`.      | `.` → `utils.ts`, `./logger`                                                                                                                     |
 | **`@repo/config`**      | Shared `tsconfig` base, ESLint config, Prettier config, and the happy-dom test preload.                                                            | `./tsconfig`, `./eslint`, `./prettier`, `./happydom`                                                                                             |
 
@@ -216,7 +218,7 @@ Validated in [`pkg/env/src/env.ts`](pkg/env/src/env.ts). The app **won't start**
 | `PORT`                    | number                                       | Port the server listens on.                                                                                                                            |
 | `DATABASE_URL`            | starts with `postgres://` or `postgresql://` | PostgreSQL connection string.                                                                                                                          |
 | `BETTER_AUTH_SECRET`      | string, min 32 chars                         | Secret used by Better Auth to sign sessions.                                                                                                           |
-| `BETTER_AUTH_URL`         | URL starting with `http`                     | Public base URL of the auth server.                                                                                                                    |
+| `BETTER_AUTH_URL`         | URL starting with `http`                     | Public URL of the app (`https://…` in production). Also the only allowed `Origin` for the CSRF check.                                                  |
 | `ENCRYPTION_KEY`          | **optional**; if set, string, min 32 chars   | Reserved for app-level encrypt/decrypt. Not used by the code yet.                                                                                      |
 | `TRUSTED_PROXY_IP_HEADER` | **optional**; a single header name           | Header your reverse proxy sets with the client IP (e.g. `x-forwarded-for`). See [Deploying behind a reverse proxy](#deploying-behind-a-reverse-proxy). |
 
@@ -224,7 +226,7 @@ Validated in [`pkg/env/src/env.ts`](pkg/env/src/env.ts). The app **won't start**
 script sets it for you.
 
 - `production`: `start`, `db:migrate:deploy`, `db:migrate:status`
-- `development`: `dev`, `auth:gen`, and every other `db:*` script
+- `development`: `dev`, `test:integration`, `auth:gen`, and every other `db:*` script
 
 Run any other entry point that imports `@repo/env` with `NODE_ENV` set, or it exits on startup.
 
@@ -247,24 +249,25 @@ build-time base URL is needed.
 
 Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 
-| Script                      | What it does                                                                                                                       |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `bun run dev`               | Start the backend in dev mode (Hono + Vite HMR) on one port.                                                                       |
-| `bun run build`             | Build the frontend for production.                                                                                                 |
-| `bun run start`             | Start the backend in production mode (serves the static build).                                                                    |
-| `bun run test`              | Run the unit test suites in each workspace that defines a `test` script (`bun test`).                                              |
-| `bun run lint`              | Run ESLint in every workspace.                                                                                                     |
-| `bun run typecheck`         | Run `tsc --noEmit` in every workspace.                                                                                             |
-| `bun run db:gen`            | Generate the Prisma client.                                                                                                        |
-| `bun run db:push`           | Push the Prisma schema to the database (no migration history — dev/prototyping only).                                              |
-| `bun run db:seed`           | Seed **local** dev users (runs [`apps/backend/src/seed.ts`](apps/backend/src/seed.ts)). See [Seeding](#5-optional-seed-dev-users). |
-| `bun run db:migrate`        | Create and apply a new migration in development (`prisma migrate dev`).                                                            |
-| `bun run db:migrate:reset`  | ⚠️ **Drops all data**, then re-applies every migration (`prisma migrate reset --force`). Dev only.                                 |
-| `bun run db:migrate:deploy` | Apply all pending migrations without generating new ones (`prisma migrate deploy`) — for CI and production.                        |
-| `bun run db:migrate:status` | Show the status of migrations against the database.                                                                                |
-| `bun run db:std`            | Open Prisma Studio.                                                                                                                |
-| `bun run auth:gen`          | Regenerate Better Auth Prisma models.                                                                                              |
-| `bun run del`               | Remove all `node_modules`/build output.                                                                                            |
+| Script                      | What it does                                                                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run dev`               | Start the backend in dev mode (Hono + Vite HMR) on one port.                                                                                |
+| `bun run build`             | Build the frontend for production.                                                                                                          |
+| `bun run start`             | Start the backend in production mode (serves the static build).                                                                             |
+| `bun run test`              | Run the unit test suites in each workspace that defines a `test` script. No database needed.                                                |
+| `bun run test:integration`  | Run `*.integration.test.ts` against the real database in `apps/backend/.env`. See [Integration tests](#integration-tests).                  |
+| `bun run lint`              | Run ESLint in every workspace.                                                                                                              |
+| `bun run typecheck`         | Run `tsc --noEmit` in every workspace.                                                                                                      |
+| `bun run db:gen`            | Generate the Prisma client.                                                                                                                 |
+| `bun run db:push`           | Push the Prisma schema to the database (no migration history — dev/prototyping only).                                                       |
+| `bun run db:seed`           | Seed **local** dev users (runs [`apps/backend/src/seed.ts`](apps/backend/src/seed.ts)). See [Seeding](#5-optional-seed-dev-users).          |
+| `bun run db:migrate`        | Create and apply a new migration in development (`prisma migrate dev`).                                                                     |
+| `bun run db:migrate:reset`  | ⚠️ **Drops all data**, then re-applies every migration (`prisma migrate reset --force`). Dev only.                                          |
+| `bun run db:migrate:deploy` | Apply all pending migrations without generating new ones (`prisma migrate deploy`) — for CI and production.                                 |
+| `bun run db:migrate:status` | Show the status of migrations against the database.                                                                                         |
+| `bun run db:std`            | Open Prisma Studio.                                                                                                                         |
+| `bun run auth:gen`          | Generate Better Auth's Prisma models. ⚠️ Overwrites `schema.prisma` with **all** models; see [Add a database model](#add-a-database-model). |
+| `bun run del`               | Remove all `node_modules`/build output.                                                                                                     |
 
 ---
 
@@ -320,7 +323,7 @@ The client is typed with `hc<AppType>()`, where `AppType` is the _type_ of the H
 
 ### Auth flow
 
-`authClient` (better-auth/react) talks to `/api/auth/*`. The [React Query hooks](pkg/react-query/src/auth) wrap it and invalidate the cached `['auth', 'session']` query after sign-in/up/out so route guards react to the fresh state. `sessionMiddleware` attaches the session to every request's context.
+`authClient` (better-auth/react) talks to `/api/auth/*`. The [React Query hooks](pkg/react-query/src/auth) wrap it and invalidate the cached `['auth', 'session']` query after sign-in/up/out so route guards react to the fresh state. `sessionMiddleware` attaches the session (or `null`) to the context of every `/api/*` request.
 
 ### Error handling & logging
 
@@ -329,7 +332,8 @@ Throw an `ErrorHandler(message, code, reason)` from [`@repo/utils`](pkg/utils/sr
 Where logs go ([`logger.ts`](pkg/utils/src/logger.ts)):
 
 - **Production:** stdout, as JSON.
-- **Development:** `logs/info.log` and `logs/error.log`. The folder is created automatically.
+- **Development:** pretty-printed to the terminal (`pino-pretty`) **and** written to
+  `logs/info.log` / `logs/error.log`. The folder is created automatically.
 
 ---
 
@@ -473,10 +477,17 @@ Create a Zod schema in [`pkg/validations/src`](pkg/validations/src) and import i
 
 ### Add a database model
 
-Add a `*.prisma` model under [`pkg/db/prisma/models`](pkg/db/prisma/models), then run `bun run db:migrate` to
+Add a `*.prisma` model under [`pkg/db/prisma/models`](pkg/db/prisma/models) (one file per model), then run `bun run db:migrate` to
 create a migration and apply it (this also regenerates the Prisma client). Commit the generated
 folder under [`pkg/db/prisma/migrations`](pkg/db/prisma/migrations) alongside your schema change so
 the migration history stays in sync across environments — CI applies it via `db:migrate:deploy`.
+
+**Models that Better Auth needs** (e.g. after enabling a plugin or a new storage option):
+`bun run auth:gen` rewrites `pkg/db/prisma/schema.prisma` with **every** model, which
+duplicates the ones in `prisma/models/` and breaks Prisma. Copy only the new model into its
+own file under `prisma/models/` (as done for [`rate-limit.prisma`](pkg/db/prisma/models/rate-limit.prisma)),
+then restore `schema.prisma` with `git checkout pkg/db/prisma/schema.prisma` and run
+`bun run db:migrate`.
 
 ### Add a page
 
