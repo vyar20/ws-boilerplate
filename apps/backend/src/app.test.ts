@@ -78,10 +78,18 @@ describe('app', () => {
     expect(authHandler).toHaveBeenCalledTimes(1)
   })
 
-  it('returns a JSON 404 for an unknown /api path when signed in', async () => {
+  it.each([
+    ['GET', '/api/does-not-exist'],
+    ['POST', '/api/does-not-exist'],
+    ['DELETE', '/api/does-not-exist'],
+    ['GET', '/api/nested/does-not-exist']
+  ])('returns a JSON 404 for %s %s when signed in', async (method, path) => {
     currentSession = signedIn
 
-    const res = await app.request('/api/does-not-exist')
+    const res = await app.request(path, {
+      method,
+      headers: { 'content-type': 'application/json' }
+    })
 
     expect(res.status).toBe(404)
     expect(await res.json()).toEqual({ message: 'NOT_FOUND' })

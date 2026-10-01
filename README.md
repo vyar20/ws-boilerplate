@@ -242,12 +242,12 @@ Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 | ------ | ------------------ | ----------- | ----------------------------------------------------------------- |
 | `ALL`  | `/api/auth/*`      | Public      | Better Auth handler (sign-up, sign-in, sign-out, get-session, …). |
 | `GET`  | `/api`             | 🔒 Required | Example route → `{ "message": "Hello from hono" }`.               |
-| `ALL`  | `/api/*` (unknown) | 🔒 Required | Catch-all → `404 { "message": "NOT_FOUND" }`.                     |
+| `ALL`  | `/api/*` (unknown) | 🔒 Required | Fallback in [`app.ts`](apps/backend/src/app.ts) → `404 { "message": "NOT_FOUND" }`. |
 | `*`    | everything else    | Public      | Served by the SPA (Vite in dev, static `index.html` in prod).     |
 
 Everything under `/api/*` (except `/api/auth/*`) is protected by the [`isAuthenticated`](apps/backend/src/middleware/is-authenticated-middleware.ts) middleware, so an unknown `/api` path returns `401` to signed-out users and `404` to signed-in ones.
 
-> **Add new API routes before the `.all('*')` catch-all** in [`_route.ts`](pkg/api/src/_route.ts). Hono runs handlers in registration order, so anything chained after it is unreachable.
+The 404 fallback is registered in [`app.ts`](apps/backend/src/app.ts) right after `app.route('/api', _route)`, not inside `_route`. Routes in [`_route.ts`](pkg/api/src/_route.ts) can therefore be chained in any order, and `AppType` contains only real routes.
 
 ### Auth endpoints (Better Auth)
 
@@ -372,11 +372,11 @@ Follow this loop for every task so the repo stays healthy and reviewable:
      .get("/me", (c) => {
        const session = c.get("session"); // typed, provided by middleware
        return c.json({ user: session?.user ?? null });
-     })
-     .all("*", (c) =>
-       c.json({ message: HTTPText.NOT_FOUND }, HTTPCode.NOT_FOUND),
-     ); // keep last
+     });
    ```
+
+   Order does not matter, and there is no catch-all to keep last: unknown `/api` paths
+   get their JSON 404 from [`app.ts`](apps/backend/src/app.ts).
 
 2. `AppType` updates automatically — the frontend RPC client is instantly typed for `/api/me`. Because the route lives under `/api`, it's protected by the auth guard by default.
 

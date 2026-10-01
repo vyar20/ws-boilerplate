@@ -28,6 +28,12 @@ app.use('/api/*', sessionMiddleware)
 app.all('/api/auth/*', (c) => auth.handler(c.req.raw))
 app.use('/api/*', isAuthenticatedMiddleware)
 app.route('/api', _route)
+// Registered after the API router so _route stays free of ordering rules and
+// AppType has no catch-all. Also keeps unknown /api paths from falling through
+// to the SPA's index.html in production.
+app.all('/api/*', (c) =>
+  c.json({ message: HTTPText.NOT_FOUND }, HTTPCode.NOT_FOUND)
+)
 
 app.onError((err, c) => {
   // Middleware such as csrf() rejects with an HTTPException carrying its own
