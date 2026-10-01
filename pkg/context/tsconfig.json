@@ -6,9 +6,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "../../apps/frontend/src/components/react-query-provider.tsx"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"]
 }
