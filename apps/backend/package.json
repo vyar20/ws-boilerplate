@@ -10,7 +10,8 @@
         "db:seed": "NODE_ENV=development bun src/seed.ts",
         "typecheck": "tsc --noEmit",
         "lint": "eslint .",
-        "test": "bun test",
+        "test": "bun test --path-ignore-patterns='**/*.integration.test.ts'",
+        "test:integration": "NODE_ENV=development bun test integration",
         "del": "rm -rf node_modules dist"
     },
     "dependencies": {

@@ -357,6 +357,27 @@ External boundaries (Better Auth, Prisma, env, logger, router) are replaced with
 Frontend test files are excluded from `tsconfig.app.json` (so `bun:test` types
 never reach the browser build) and type-checked by `tsconfig.test.json` instead.
 
+### Integration tests
+
+`*.integration.test.ts` files run the real stack (Better Auth, Prisma, `@repo/env`)
+against a real Postgres, with nothing mocked. [`auth.integration.test.ts`](apps/backend/src/auth.integration.test.ts)
+walks sign-up → weak password → duplicate email → wrong password → sign-in → `GET /api`
+→ sign-out through `app.request()`, and spies on the logger to check that only the
+successful steps log `USER_CREATED` / `USER_LOGGED_IN`.
+
+```bash
+bun run db:migrate:deploy   # the database in apps/backend/.env must be migrated
+bun run test:integration
+```
+
+- **Needs a database:** it uses `DATABASE_URL` from `apps/backend/.env`. Point it at a
+  local dev or throwaway database, never a shared or production one. To use another
+  database for one run: `DATABASE_URL=postgresql://…/test_db bun run test:integration`.
+- **Cleans up after itself:** each run uses a unique email and deletes that user (and
+  its sessions/accounts) in `afterAll`.
+- **Kept out of `bun run test`:** the unit `test` script ignores
+  `**/*.integration.test.ts`, so unit tests never need a database.
+
 **Always ship code with tests.** Every change to behavior — a new API route, a
 validation schema, a utility, a bug fix — must come with unit tests that cover the
 happy path and the meaningful failure/edge cases (invalid input, auth denials,
@@ -376,7 +397,8 @@ bun run test
 2. Installs dependencies with the Bun version pinned in `packageManager` (`--frozen-lockfile`).
 3. Writes a dummy `apps/backend/.env` (no `NODE_ENV`, same as local).
 4. Applies migrations with `db:migrate:deploy`, then runs `db:gen`.
-5. Runs `lint`, `test`, and `typecheck` across all workspaces, then `build`.
+5. Runs `lint`, unit `test`, `test:integration` (against the Postgres service),
+   `typecheck` and `build`. The job is named `lint - test - typecheck - build`.
 
 A PR should not be merged until this check is green.
 

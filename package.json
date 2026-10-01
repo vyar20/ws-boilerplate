@@ -8,6 +8,7 @@
         "build": "bun --filter '*' build",
         "lint": "bun --filter '*' lint",
         "test": "bun --filter '*' test",
+        "test:integration": "bun --filter '*' test:integration",
         "typecheck": "bun --filter '*' typecheck",
         "db:gen": "bun --filter '*' db:gen",
         "db:push": "bun --filter '*' db:push",

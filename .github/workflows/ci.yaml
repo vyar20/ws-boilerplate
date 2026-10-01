@@ -10,7 +10,7 @@ on:
 
 jobs:
   ci:
-    name: linting - test - typecheck
+    name: lint - test - typecheck - build
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -59,6 +59,10 @@ jobs:
 
       - name: test
         run: bun run test
+
+      # Real Better Auth + Prisma against the Postgres service migrated above.
+      - name: integration test
+        run: bun run test:integration
 
       - name: typecheck
         run: bun run typecheck
