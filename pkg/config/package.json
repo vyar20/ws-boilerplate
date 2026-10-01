@@ -11,7 +11,8 @@
     "exports": {
         "./tsconfig": "./base.json",
         "./eslint": "./eslint.ts",
-        "./prettier": "./prettier.ts"
+        "./prettier": "./prettier.ts",
+        "./happydom": "./happydom.ts"
     },
     "dependencies": {
         "prettier-plugin-tailwindcss": "^0.8.1"
