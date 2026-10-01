@@ -380,7 +380,7 @@ The production server serves the static SPA and the API from the same port defin
 
 - **Client/server boundary is enforced.** [`apps/frontend/eslint.config.js`](apps/frontend/eslint.config.js) uses `@typescript-eslint/no-restricted-imports` to block server-only packages (`@repo/db`, `@repo/env`, `@repo/api/auth`, `@repo/utils/logger`) from being imported in frontend code. `@repo/api/_route` is allowed **as a type import only**. This guarantees Prisma, secrets, and server logic never leak into the browser bundle.
 - **Secrets never reach the client.** The frontend ships with no env file, so no build-time values are baked into the bundle; only `VITE_`-prefixed vars would ever be exposed by Vite, and the RPC route type is erased at build time.
-- **Passwords are redacted in logs**, and credentials are validated against a strong password policy.
+- **Auth logs are allowlisted** — sign-in/sign-up events record only the masked email, never the raw request body or password — and credentials are validated against a strong password policy.
 - **Keep `.env` files out of version control** (already covered by `.gitignore`). Rotate any secret that has been shared or committed.
 
 ---
