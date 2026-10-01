@@ -1,29 +1,37 @@
 import { create } from 'zustand'
 
+export type Theme = 'light' | 'dark'
+
 export type ThemeContext = {
-  theme: 'light' | 'dark'
-  setTheme: (theme: ThemeContext['theme']) => void
+  theme: Theme
+  setTheme: (theme: Theme) => void
   toggleTheme: () => void
 }
 
-export const themeContext = create<ThemeContext>((set) => ({
-  theme: (localStorage?.getItem('theme') as ThemeContext['theme']) ?? 'light',
-  setTheme: (theme) =>
-    set(() => {
-      console.log(theme)
+const STORAGE_KEY = 'theme'
 
-      if (typeof window !== 'undefined') localStorage.setItem('theme', theme)
-      return { theme }
-    }),
-  toggleTheme: () =>
-    set((prevState) => {
-      if (typeof window !== 'undefined')
-        localStorage.setItem(
-          'theme',
-          prevState.theme === 'light' ? 'dark' : 'light'
-        )
-      return {
-        theme: prevState.theme === 'light' ? 'dark' : 'light'
-      }
-    })
+const isTheme = (value: unknown): value is Theme =>
+  value === 'light' || value === 'dark'
+
+// Stored value first (only if valid), then the OS preference, then light.
+// Guarded so the module can be imported where there is no window (SSR, tests).
+export const getInitialTheme = (): Theme => {
+  if (typeof window === 'undefined') return 'light'
+
+  const stored = window.localStorage.getItem(STORAGE_KEY)
+  if (isTheme(stored)) return stored
+
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light'
+}
+
+export const themeContext = create<ThemeContext>((set, get) => ({
+  theme: getInitialTheme(),
+  setTheme: (theme) => {
+    if (typeof window !== 'undefined')
+      window.localStorage.setItem(STORAGE_KEY, theme)
+    set({ theme })
+  },
+  toggleTheme: () => get().setTheme(get().theme === 'light' ? 'dark' : 'light')
 }))
