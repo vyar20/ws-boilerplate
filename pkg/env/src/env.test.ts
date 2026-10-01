@@ -75,3 +75,36 @@ describe('envSchema', () => {
     ).toBe('BETTER_AUTH_URL is required.')
   })
 })
+
+describe('TRUSTED_PROXY_IP_HEADER', () => {
+  it('is optional', () => {
+    const result = envSchema.safeParse(VALID_ENV)
+
+    expect(result.success).toBe(true)
+    expect(result.data?.TRUSTED_PROXY_IP_HEADER).toBeUndefined()
+  })
+
+  it.each(['x-forwarded-for', 'CF-Connecting-IP', 'x-real-ip'])(
+    'accepts the header name %s',
+    (header) => {
+      const result = envSchema.safeParse({
+        ...VALID_ENV,
+        TRUSTED_PROXY_IP_HEADER: header
+      })
+
+      expect(result.data?.TRUSTED_PROXY_IP_HEADER).toBe(header)
+    }
+  )
+
+  it.each(['x-forwarded-for, x-real-ip', 'x forwarded', ''])(
+    'rejects a value that is not a single header name (%p)',
+    (header) => {
+      expect(
+        issueFor(
+          { ...VALID_ENV, TRUSTED_PROXY_IP_HEADER: header },
+          'TRUSTED_PROXY_IP_HEADER'
+        )
+      ).toBeDefined()
+    }
+  )
+})

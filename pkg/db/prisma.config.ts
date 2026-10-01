@@ -5,9 +5,10 @@ import { defineConfig } from 'prisma/config'
 
 export default defineConfig({
   schema: 'prisma',
+  // No `seed` here on purpose: seeding needs @repo/api (Better Auth), and
+  // @repo/db must not depend on it. Run `bun run db:seed` (apps/backend).
   migrations: {
-    path: 'prisma/migrations',
-    seed: 'bun run src/seed.ts'
+    path: 'prisma/migrations'
   },
   datasource: {
     url: env.DATABASE_URL

@@ -7,6 +7,7 @@
         "development": "NODE_ENV=development bun --hot src/app-dev.ts ",
         "start": "bun run prod",
         "prod": "NODE_ENV=production bun src/app-prod.ts",
+        "db:seed": "NODE_ENV=development bun src/seed.ts",
         "typecheck": "tsc --noEmit",
         "lint": "eslint .",
         "test": "bun test --path-ignore-patterns='**/*.integration.test.ts'",
