@@ -2,28 +2,28 @@ version: 2
 
 updates:
   # Reads the root bun.lock, which covers every workspace (apps/*, pkg/*).
-  - package-ecosystem: 'bun'
-    directory: '/'
+  - package-ecosystem: "bun"
+    directory: "/"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
     open-pull-requests-limit: 5
     groups:
       # One PR for all minor/patch bumps. Majors are not matched here, so each
       # major update gets its own PR per package.
       minor-and-patch:
-        patterns: ['*']
-        update-types: ['minor', 'patch']
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     commit-message:
-      prefix: 'build(deps)'
+      prefix: "build(deps)"
 
-  - package-ecosystem: 'github-actions'
-    directory: '/'
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
     open-pull-requests-limit: 5
     groups:
       minor-and-patch:
-        patterns: ['*']
-        update-types: ['minor', 'patch']
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     commit-message:
-      prefix: 'ci(deps)'
+      prefix: "ci(deps)"
