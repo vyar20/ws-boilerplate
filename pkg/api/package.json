@@ -14,13 +14,13 @@
         "./auth": "./src/lib/auth.ts"
     },
     "dependencies": {
-        "@better-auth/prisma-adapter": "^1.7.4",
+        "@better-auth/prisma-adapter": "^1.7.6",
         "@repo/db": "workspace:*",
         "@repo/env": "workspace:*",
         "@repo/utils": "workspace:*",
         "@repo/validations": "workspace:*",
-        "better-auth": "^1.7.4",
-        "hono": "^4.13.7"
+        "better-auth": "^1.7.6",
+        "hono": "^4.13.10"
     },
     "devDependencies": {
         "@repo/config": "workspace:*"
