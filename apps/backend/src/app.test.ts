@@ -21,10 +21,12 @@ mock.module('@repo/api/auth', () => ({
 const { ErrorHandler } = await import('@repo/utils')
 const { app } = await import('./app')
 
-app.get('/api/boom', () => {
+// Registered outside /api: the API router's catch-all would shadow anything
+// added under /api after it. onError is app-wide, so coverage is unchanged.
+app.get('/test/boom', () => {
   throw new Error('db password=hunter2 leaked in stack')
 })
-app.get('/api/bad', () => {
+app.get('/test/bad', () => {
   throw new ErrorHandler('Invalid input', 'BAD_REQUEST', 'field x missing')
 })
 
@@ -73,10 +75,23 @@ describe('app', () => {
     expect(authHandler).toHaveBeenCalledTimes(1)
   })
 
-  it('maps an ErrorHandler to its status code and message', async () => {
+  it('returns a JSON 404 for an unknown /api path when signed in', async () => {
     currentSession = signedIn
 
-    const res = await app.request('/api/bad')
+    const res = await app.request('/api/does-not-exist')
+
+    expect(res.status).toBe(404)
+    expect(await res.json()).toEqual({ message: 'NOT_FOUND' })
+  })
+
+  it('returns 401, not 404, for an unknown /api path when signed out', async () => {
+    const res = await app.request('/api/does-not-exist')
+
+    expect(res.status).toBe(401)
+  })
+
+  it('maps an ErrorHandler to its status code and message', async () => {
+    const res = await app.request('/test/bad')
 
     expect(res.status).toBe(400)
     expect(await res.json()).toEqual({ message: 'Invalid input' })
@@ -87,9 +102,7 @@ describe('app', () => {
   })
 
   it('hides unexpected error details from the client', async () => {
-    currentSession = signedIn
-
-    const res = await app.request('/api/boom')
+    const res = await app.request('/test/boom')
     const body = await res.text()
 
     expect(res.status).toBe(500)

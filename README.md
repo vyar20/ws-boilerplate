@@ -230,9 +230,12 @@ Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 | ------ | --------------- | ----------- | ----------------------------------------------------------------- |
 | `ALL`  | `/api/auth/*`   | Public      | Better Auth handler (sign-up, sign-in, sign-out, get-session, …). |
 | `GET`  | `/api`          | 🔒 Required | Example route → `{ "message": "Hello from hono" }`.               |
+| `ALL`  | `/api/*` (unknown) | 🔒 Required | Catch-all → `404 { "message": "NOT_FOUND" }`.                  |
 | `*`    | everything else | Public      | Served by the SPA (Vite in dev, static `index.html` in prod).     |
 
-Everything under `/api/*` (except `/api/auth/*`) is protected by the [`isAuthenticated`](apps/backend/src/middleware/is-authenticated-middleware.ts) middleware.
+Everything under `/api/*` (except `/api/auth/*`) is protected by the [`isAuthenticated`](apps/backend/src/middleware/is-authenticated-middleware.ts) middleware, so an unknown `/api` path returns `401` to signed-out users and `404` to signed-in ones.
+
+> **Add new API routes before the `.all('*')` catch-all** in [`_route.ts`](pkg/api/src/_route.ts). Hono runs handlers in registration order, so anything chained after it is unreachable.
 
 ### Auth endpoints (Better Auth)
 
