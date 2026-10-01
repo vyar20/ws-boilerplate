@@ -22,6 +22,15 @@ export const envSchema = z.object({
   ENCRYPTION_KEY: z
     .string()
     .min(32, { error: 'ENCRYPTION_KEY min length 32.' })
+    .optional(),
+  // Header set by YOUR reverse proxy with the client IP (e.g. x-forwarded-for).
+  // Only set it behind a proxy that overwrites it, or clients can spoof their IP.
+  TRUSTED_PROXY_IP_HEADER: z
+    .string()
+    .regex(/^[A-Za-z0-9-]+$/, {
+      error:
+        'TRUSTED_PROXY_IP_HEADER should be a header name, e.g. x-forwarded-for.'
+    })
     .optional()
 })
 

@@ -1,0 +1,11 @@
+// Better Auth rate limit counters (rateLimit.storage = 'database').
+// Copied from `bun run auth:gen` output; keep in sync with Better Auth's schema.
+model RateLimit {
+  id          String @id
+  key         String
+  count       Int
+  lastRequest BigInt
+
+  @@unique([key])
+  @@map("rateLimit")
+}

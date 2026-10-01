@@ -9,6 +9,8 @@ type Ctx = {
 type Hook = (ctx: Ctx) => Promise<void>
 type AuthConfig = {
   baseURL: string
+  rateLimit: { storage: string; enabled?: boolean }
+  advanced?: { ipAddress?: { ipAddressHeaders?: string[] } }
   hooks: { before: Hook; after: Hook }
   emailAndPassword: {
     enabled: boolean
@@ -44,14 +46,16 @@ mock.module('better-auth/api', () => ({
   APIError: FakeAPIError,
   createAuthMiddleware: (fn: unknown) => fn
 }))
-mock.module('@better-auth/prisma-adapter', () => ({ prismaAdapter: () => ({}) }))
+mock.module('@better-auth/prisma-adapter', () => ({
+  prismaAdapter: () => ({})
+}))
 mock.module('@repo/db', () => ({ db: {} }))
 mock.module('@repo/env', () => ({
   env: { BETTER_AUTH_URL: 'http://localhost:3000' }
 }))
 mock.module('@repo/utils/logger', () => ({ logger: { info: logInfo } }))
 
-await import('./auth')
+const { ipAddressOptions } = await import('./auth')
 
 const STRONG = 'Str0ng!Passw0rd'
 const body = {
@@ -86,6 +90,31 @@ describe('auth config', () => {
 
   it('enforces a 12-character minimum at the Better Auth level', () => {
     expect(config.emailAndPassword.minPasswordLength).toBe(12)
+  })
+
+  it('stores rate limit counters in the database', () => {
+    expect(config.rateLimit.storage).toBe('database')
+  })
+
+  it("keeps Better Auth's rate limit default (production only)", () => {
+    expect(config.rateLimit.enabled).toBeUndefined()
+  })
+
+  it('leaves the IP headers to Better Auth when TRUSTED_PROXY_IP_HEADER is unset', () => {
+    // The env mock above has no TRUSTED_PROXY_IP_HEADER.
+    expect(config.advanced).toBeUndefined()
+  })
+})
+
+describe('ipAddressOptions', () => {
+  it('trusts only the configured proxy header', () => {
+    expect(ipAddressOptions('x-forwarded-for')).toEqual({
+      ipAddress: { ipAddressHeaders: ['x-forwarded-for'] }
+    })
+  })
+
+  it.each([undefined, ''])('returns nothing for %p', (header) => {
+    expect(ipAddressOptions(header)).toBeUndefined()
   })
 })
 
