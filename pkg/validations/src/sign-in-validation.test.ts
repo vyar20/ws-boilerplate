@@ -44,12 +44,21 @@ describe('signInValidation', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects a weak password', () => {
+  it('accepts a password that fails the complexity rules', () => {
     const result = signInValidation.safeParse({
       email: 'john.doe@mail.com',
       password: 'weak'
     })
 
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects an empty or missing password', () => {
+    const email = 'john.doe@mail.com'
+
+    expect(signInValidation.safeParse({ email, password: '' }).success).toBe(
+      false
+    )
+    expect(signInValidation.safeParse({ email }).success).toBe(false)
   })
 })

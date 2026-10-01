@@ -33,10 +33,20 @@ describe('signUpValidation', () => {
     expect(result.success).toBe(false)
   })
 
-  it('still enforces the shared email + password rules', () => {
+  it('still enforces the shared email rule', () => {
     const result = signUpValidation.safeParse({
       name: 'John Doe',
       email: 'not-an-email',
+      password: VALID_PASSWORD
+    })
+
+    expect(result.success).toBe(false)
+  })
+
+  it('keeps the strict password policy that sign-in no longer applies', () => {
+    const result = signUpValidation.safeParse({
+      name: 'John Doe',
+      email: 'john.doe@mail.com',
       password: 'weak'
     })
 
