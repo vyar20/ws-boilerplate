@@ -23,6 +23,7 @@ Fork it, set a few environment variables, and start building.
 - [Contributing workflow](#contributing-workflow)
 - [Recipes](#recipes)
 - [Production build](#production-build)
+- [Deploying behind a reverse proxy](#deploying-behind-a-reverse-proxy)
 - [Security notes](#security-notes)
 - [License](#license)
 
@@ -186,13 +187,14 @@ Validated in [`pkg/env/src/env.ts`](pkg/env/src/env.ts). The app **won't start**
 
 ### Backend — `apps/backend/.env`
 
-| Variable             | Type / rule                                  | Description                                                       |
-| -------------------- | -------------------------------------------- | ----------------------------------------------------------------- |
-| `PORT`               | number                                       | Port the server listens on.                                       |
-| `DATABASE_URL`       | starts with `postgres://` or `postgresql://` | PostgreSQL connection string.                                     |
-| `BETTER_AUTH_SECRET` | string, min 32 chars                         | Secret used by Better Auth to sign sessions.                      |
-| `BETTER_AUTH_URL`    | URL starting with `http`                     | Public base URL of the auth server.                               |
-| `ENCRYPTION_KEY`     | **optional**; if set, string, min 32 chars   | Reserved for app-level encrypt/decrypt. Not used by the code yet. |
+| Variable                  | Type / rule                                  | Description                                                                                                                                            |
+| ------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PORT`                    | number                                       | Port the server listens on.                                                                                                                            |
+| `DATABASE_URL`            | starts with `postgres://` or `postgresql://` | PostgreSQL connection string.                                                                                                                          |
+| `BETTER_AUTH_SECRET`      | string, min 32 chars                         | Secret used by Better Auth to sign sessions.                                                                                                           |
+| `BETTER_AUTH_URL`         | URL starting with `http`                     | Public base URL of the auth server.                                                                                                                    |
+| `ENCRYPTION_KEY`          | **optional**; if set, string, min 32 chars   | Reserved for app-level encrypt/decrypt. Not used by the code yet.                                                                                      |
+| `TRUSTED_PROXY_IP_HEADER` | **optional**; a single header name           | Header your reverse proxy sets with the client IP (e.g. `x-forwarded-for`). See [Deploying behind a reverse proxy](#deploying-behind-a-reverse-proxy). |
 
 `NODE_ENV` (`development` | `production`) is still validated but **not set in `.env`**: each
 script sets it for you.
@@ -448,6 +450,36 @@ CMD ["bun", "apps/backend/src/app-prod.ts"]
 In production, logs are written to **stdout** as JSON (collect them with your platform's
 log driver). The `logs/` files are only used in development.
 
+Run `bun run db:migrate:deploy` before starting a new version. Rate limiting needs the
+`rateLimit` table; without it Better Auth logs a schema mismatch at startup.
+
+---
+
+## Deploying behind a reverse proxy
+
+Typical setup: nginx, Caddy, a load balancer or a PaaS router terminates TLS and forwards
+plain HTTP to the Bun server.
+
+1. **`BETTER_AUTH_URL` must be the public URL**, e.g. `https://app.example.com`, not the
+   internal `http://localhost:3000`. Better Auth builds callback URLs and checks trusted
+   origins from it, and the CSRF check compares the browser's `Origin` against its origin.
+   The request URL the app sees is `http://…` behind the proxy, so it cannot be used for
+   that check.
+2. **Set `TRUSTED_PROXY_IP_HEADER`** to the header your proxy writes with the client IP,
+   e.g. `x-forwarded-for` (nginx, most load balancers) or `cf-connecting-ip` (Cloudflare).
+   Better Auth then reads the client IP **only** from that header. Make sure the proxy
+   **overwrites** the header instead of appending to what the client sent, otherwise
+   clients can choose their own IP. Leave it unset to keep Better Auth's default headers.
+3. **Rate limiting needs a real client IP.** Better Auth rate-limits auth endpoints in
+   production (e.g. 3 sign-in attempts per 10 s per IP). When no IP header is present,
+   every request is counted under one shared `no-trusted-ip` key, so a few failed logins
+   from anyone block sign-in for everyone. This happens when the server is exposed
+   directly without a proxy, or when the proxy's header is not configured.
+4. **Why the counters live in Postgres** (`rateLimit.storage: 'database'`): with the
+   default in-memory storage each instance keeps its own counters, so running N instances
+   gives an attacker N times the limit, and every restart resets it. The `rateLimit`
+   table is shared by all instances.
+
 ---
 
 ## Security notes
@@ -456,8 +488,9 @@ log driver). The `logs/` files are only used in development.
 - **Secrets never reach the client.** The frontend ships with no env file, so no build-time values are baked into the bundle; only `VITE_`-prefixed vars would ever be exposed by Vite, and the RPC route type is erased at build time.
 - **Auth logs are allowlisted and success-only.** `USER_LOGGED_IN` / `USER_CREATED` are written from Better Auth's `after` hook only when a new session was created, so failed attempts are never logged as successes. They record only the masked email, never the raw request body or password.
 - **Passwords are hashed with argon2id** (Bun's `Bun.password` default). Existing **bcrypt** hashes still verify: `Bun.password.verify` detects the algorithm from the hash format (covered by a test in [`auth.test.ts`](pkg/api/src/lib/auth.test.ts)). Users with a bcrypt hash keep it until their password is changed.
-- **Security headers** on every response via Hono's [`secureHeaders()`](https://hono.dev/docs/middleware/builtin/secure-headers) (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, HSTS, `Referrer-Policy`, …). No CSP is set yet; add one with `secureHeaders({ contentSecurityPolicy })` once you know your asset origins.
-- **CSRF protection** on `/api/*` via Hono's [`csrf()`](https://hono.dev/docs/middleware/builtin/csrf): cross-site **form-style** writes (`application/x-www-form-urlencoded`, `multipart/form-data`, `text/plain`, or no content type) are rejected with `403` unless `Origin` or `Sec-Fetch-Site` says same-origin. Cross-origin JSON requests are blocked by the browser's CORS preflight, since no CORS is enabled. Behind a TLS-terminating proxy, make sure the request URL keeps the public `https://` origin, or form posts from older browsers without `Sec-Fetch-Site` will be rejected.
+- **Security headers** on every response via Hono's [`secureHeaders()`](https://hono.dev/docs/middleware/builtin/secure-headers) (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, HSTS, `Referrer-Policy`, …).
+- **Content-Security-Policy** on every response served by Hono, which includes the production SPA (`index.html` and assets): `default-src 'self'`, `script-src 'self'` (no `'unsafe-eval'`, no inline scripts), `style-src 'self' 'unsafe-inline'`, `img-src`/`font-src 'self' data:`, `connect-src 'self'`, `frame-ancestors 'none'`, `base-uri 'self'`, `form-action 'self'`. In development the HTML comes from Vite, not Hono, so the CSP does not apply there. Zod is set to `jitless` in [`zod-config.ts`](apps/frontend/src/lib/zod-config.ts) because its `Function('')` eval probe would otherwise trip `script-src`. If you add a third-party script, font or API origin, add it to the matching directive in [`app.ts`](apps/backend/src/app.ts).
+- **CSRF protection** on `/api/*` via Hono's [`csrf()`](https://hono.dev/docs/middleware/builtin/csrf): cross-site **form-style** writes (`application/x-www-form-urlencoded`, `multipart/form-data`, `text/plain`, or no content type) are rejected with `403` unless `Sec-Fetch-Site` says same-origin or `Origin` equals the origin of `BETTER_AUTH_URL`. Cross-origin JSON requests are blocked by the browser's CORS preflight, since no CORS is enabled. Comparing against `BETTER_AUTH_URL` (not the request URL) keeps this correct behind a TLS-terminating proxy; see [Deploying behind a reverse proxy](#deploying-behind-a-reverse-proxy).
 - **Keep `.env` files out of version control** (already covered by `.gitignore`). Rotate any secret that has been shared or committed.
 
 ---
