@@ -5,6 +5,7 @@
     "scripts": {
         "lint": "eslint .",
         "typecheck": "tsc --noEmit",
+        "test": "bun test",
         "del": "rm -rf node_modules dist"
     },
     "exports": {

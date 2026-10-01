@@ -2,7 +2,7 @@ import { type Env } from '@repo/api/_route'
 import { ErrorHandler, HTTPText } from '@repo/utils'
 import { createMiddleware } from 'hono/factory'
 
-export const isAuthenticatedMiddlware = createMiddleware<Env>(
+export const isAuthenticatedMiddleware = createMiddleware<Env>(
   async (c, next) => {
     const session = c.get('session')
 

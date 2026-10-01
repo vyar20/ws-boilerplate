@@ -1,13 +1,13 @@
 import { _route, type Env } from '@repo/api/_route'
+import { auth } from '@repo/api/auth'
 import { env } from '@repo/env'
 import { ErrorHandler, HTTPCode, HTTPText } from '@repo/utils'
 import { logger } from '@repo/utils/logger'
 import { Hono } from 'hono'
 import { type ContentfulStatusCode } from 'hono/utils/http-status'
 import path from 'node:path'
-import { auth } from '../../../pkg/api/src/lib/auth'
 import { sessionMiddleware } from './middleware/auth-middleware'
-import { isAuthenticatedMiddlware } from './middleware/is-authenticated-middleware'
+import { isAuthenticatedMiddleware } from './middleware/is-authenticated-middleware'
 
 const app = new Hono<Env>()
 
@@ -18,7 +18,7 @@ export const frontendPath = path.resolve(
 
 app.use('/api/*', sessionMiddleware)
 app.all('/api/auth/*', (c) => auth.handler(c.req.raw))
-app.use('/api/*', isAuthenticatedMiddlware)
+app.use('/api/*', isAuthenticatedMiddleware)
 app.route('/api', _route)
 
 app.onError((err, c) => {

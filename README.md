@@ -101,7 +101,7 @@ Every workspace package is published internally as `@repo/<name>` and consumed v
 | **`@repo/react-query`** | TanStack Query hooks that wrap the auth client, plus the typed Hono RPC client (`api`) and the Better Auth browser client (`authClient`).           | `./auth/use-session`, `./auth/use-sign-in`, `./auth/use-sign-up`, `./auth/use-sign-out`, `./lib/rpc` (`api`), `./lib/auth-client` (`authClient`) |
 | **`@repo/context`**     | Client-side state stores. Currently a Zustand store for the light/dark theme.                                                                       | `./theme-context` (`themeContext`)                                                                                 |
 | **`@repo/utils`**       | Cross-cutting helpers: `HTTPCode`/`HTTPText`, `ErrorHandler`, `EventLogType`, `maskEmail`, a promise-tuple helper `p`, and the Pino `logger`.      | `.` → `utils.ts`, `./logger`                                                                                       |
-| **`@repo/config`**      | Shared `tsconfig` base, ESLint config, and Prettier config.                                                                                        | `./tsconfig`, `./eslint`, `./prettier`                                                                             |
+| **`@repo/config`**      | Shared `tsconfig` base, ESLint config, Prettier config, and the happy-dom test preload.                                                            | `./tsconfig`, `./eslint`, `./prettier`, `./happydom`                                                               |
 
 ---
 
@@ -282,11 +282,23 @@ Unit tests run on **Bun's built-in test runner** (`bun test`). Test files live n
 the code they cover and use the `*.test.ts` suffix (e.g.
 [`pkg/utils/src/utils.test.ts`](pkg/utils/src/utils.test.ts),
 [`pkg/validations/src/sign-in-validation.test.ts`](pkg/validations/src/sign-in-validation.test.ts)).
+Every workspace — all `pkg/*` packages plus `apps/backend` and `apps/frontend` — has a suite.
 
 ```bash
 bun run test            # run the suite in every workspace that defines a `test` script
 bun test path/to/file   # run a single file while iterating
 ```
+
+**React code** (`apps/frontend`, `pkg/react-query`, `pkg/context`) is tested with
+[`@testing-library/react`](https://testing-library.com/docs/react-testing-library/intro/)
+against a [happy-dom](https://github.com/capricorn86/happy-dom) DOM. Each of those
+workspaces has a `bunfig.toml` that preloads [`@repo/config/happydom`](pkg/config/happydom.ts).
+Call `cleanup` in `afterEach`, since Bun does not run Testing Library's auto-cleanup.
+External boundaries (Better Auth, Prisma, env, logger, router) are replaced with
+`mock.module` so suites need no database or network.
+
+Frontend test files are excluded from `tsconfig.app.json` (so `bun:test` types
+never reach the browser build) and type-checked by `tsconfig.test.json` instead.
 
 **Always ship code with tests.** Every change to behavior — a new API route, a
 validation schema, a utility, a bug fix — must come with unit tests that cover the
@@ -380,7 +392,7 @@ The production server serves the static SPA and the API from the same port defin
 
 - **Client/server boundary is enforced.** [`apps/frontend/eslint.config.js`](apps/frontend/eslint.config.js) uses `@typescript-eslint/no-restricted-imports` to block server-only packages (`@repo/db`, `@repo/env`, `@repo/api/auth`, `@repo/utils/logger`) from being imported in frontend code. `@repo/api/_route` is allowed **as a type import only**. This guarantees Prisma, secrets, and server logic never leak into the browser bundle.
 - **Secrets never reach the client.** The frontend ships with no env file, so no build-time values are baked into the bundle; only `VITE_`-prefixed vars would ever be exposed by Vite, and the RPC route type is erased at build time.
-- **Passwords are redacted in logs**, and credentials are validated against a strong password policy.
+- **Auth logs are allowlisted** — sign-in/sign-up events record only the masked email, never the raw request body or password — and credentials are validated against a strong password policy.
 - **Keep `.env` files out of version control** (already covered by `.gitignore`). Rotate any secret that has been shared or committed.
 
 ---
