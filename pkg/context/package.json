@@ -11,7 +11,10 @@
     "exports": {
         "./*": "./src/*.ts"
     },
-    "dependencies": {},
+    "dependencies": {
+        "react": "^19.2.8",
+        "zustand": "^5.0.15"
+    },
     "devDependencies": {
         "@repo/config": "workspace:*"
     }

@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     branches:
       - master
@@ -43,11 +46,7 @@ jobs:
           DATABASE_URL=postgresql://ci:ci@localhost:5432/ci
           BETTER_AUTH_SECRET=ci-dummy-better-auth-secret-000000000000
           BETTER_AUTH_URL=http://localhost:3000
-          ENCRYPTION_KEY=ci-dummy-encryption-key-00000000000000000
           EOF
-
-      - name: Make logs dir
-        run: mkdir logs
 
       - name: Prisma Migration
         run: bun run db:migrate:deploy
@@ -63,3 +62,6 @@ jobs:
 
       - name: typecheck
         run: bun run typecheck
+
+      - name: build
+        run: bun run build

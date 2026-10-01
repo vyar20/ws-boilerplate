@@ -7,7 +7,6 @@ type ThemeProviderProps = {
 
 export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
   const theme = themeContext((state) => state.theme)
-  console.log({ theme })
 
   useEffect(
     () => document.querySelector('html')?.setAttribute('class', theme),

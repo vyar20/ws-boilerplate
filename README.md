@@ -24,6 +24,7 @@ Fork it, set a few environment variables, and start building.
 - [Recipes](#recipes)
 - [Production build](#production-build)
 - [Security notes](#security-notes)
+- [License](#license)
 
 ---
 
@@ -41,7 +42,7 @@ Fork it, set a few environment variables, and start building.
 | Forms & validation        | **react-hook-form** + **Zod** (shared schemas)                                |
 | UI                        | **Tailwind CSS v4**, **shadcn / base-ui** (incl. Toast), **lucide-react**     |
 | State management (client) | **Zustand** (theme store in `@repo/context`)                                  |
-| Logging                   | **Pino** (file transport)                                                     |
+| Logging                   | **Pino** (stdout in production, files in development)                         |
 | Tooling                   | **ESLint**, **Prettier**, **React Compiler** (scaffolded, currently disabled) |
 
 ---
@@ -73,8 +74,9 @@ Fork it, set a few environment variables, and start building.
 │   ├── react-query/    # TanStack Query hooks (auth) + the RPC & auth clients
 │   ├── utils/          # HTTP helpers, error handler, logger
 │   └── validations/    # Shared Zod schemas
-├── logs/               # Pino log output (gitignored)
-├── package.json        # Root workspace + scripts
+├── logs/               # Pino log files in development (auto-created, gitignored)
+├── LICENSE             # MIT
+├── package.json        # Root workspace, scripts, shared tooling devDependencies
 └── README.md
 ```
 
@@ -83,6 +85,12 @@ Fork it, set a few environment variables, and start building.
 ## Packages & apps
 
 Every workspace package is published internally as `@repo/<name>` and consumed via `workspace:*`.
+
+**Dependencies live where they are imported.** Each workspace declares its own runtime
+dependencies (including peers such as `react` for `zustand` or `zod` for
+`@hookform/resolvers`); the root `package.json` only holds shared tooling
+devDependencies (TypeScript types, ESLint, Prettier, test libraries). Add a package
+with `bun add <pkg> --cwd <workspace>`, not at the root.
 
 ### Apps
 
@@ -141,7 +149,7 @@ PORT=3000
 DATABASE_URL=postgresql://user:password@localhost:5432/mydb
 BETTER_AUTH_SECRET=replace-with-a-random-string-at-least-32-chars
 BETTER_AUTH_URL=http://localhost:3000
-ENCRYPTION_KEY=replace-with-a-random-string-at-least-32-chars
+# ENCRYPTION_KEY=optional-not-used-yet-min-32-chars
 ```
 
 > The frontend needs **no env file**. Because the API and the SPA are served from
@@ -174,17 +182,17 @@ Open **http://localhost:3000**. The frontend and the API are both served from th
 
 ## Environment variables
 
-Validated in [`pkg/env/src/env.ts`](pkg/env/src/env.ts). The app **won't start** if any are missing or invalid.
+Validated in [`pkg/env/src/env.ts`](pkg/env/src/env.ts). The app **won't start** if a required variable is missing or any variable is invalid.
 
 ### Backend — `apps/backend/.env`
 
-| Variable             | Type / rule                                  | Description                                  |
-| -------------------- | -------------------------------------------- | -------------------------------------------- |
-| `PORT`               | number                                       | Port the server listens on.                  |
-| `DATABASE_URL`       | starts with `postgres://` or `postgresql://` | PostgreSQL connection string.                |
-| `BETTER_AUTH_SECRET` | string, min 32 chars                         | Secret used by Better Auth to sign sessions. |
-| `BETTER_AUTH_URL`    | URL starting with `http`                     | Public base URL of the auth server.          |
-| `ENCRYPTION_KEY`     | string, min 32 chars                         | Reserved for app-level encrypt/decrypt.      |
+| Variable             | Type / rule                                  | Description                                                       |
+| -------------------- | -------------------------------------------- | ----------------------------------------------------------------- |
+| `PORT`               | number                                       | Port the server listens on.                                       |
+| `DATABASE_URL`       | starts with `postgres://` or `postgresql://` | PostgreSQL connection string.                                     |
+| `BETTER_AUTH_SECRET` | string, min 32 chars                         | Secret used by Better Auth to sign sessions.                      |
+| `BETTER_AUTH_URL`    | URL starting with `http`                     | Public base URL of the auth server.                               |
+| `ENCRYPTION_KEY`     | **optional**; if set, string, min 32 chars   | Reserved for app-level encrypt/decrypt. Not used by the code yet. |
 
 `NODE_ENV` (`development` | `production`) is still validated but **not set in `.env`**: each
 script sets it for you.
@@ -238,16 +246,16 @@ Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 
 ### Backend (Hono)
 
-| Method | Path               | Auth        | Description                                                       |
-| ------ | ------------------ | ----------- | ----------------------------------------------------------------- |
-| `ALL`  | `/api/auth/*`      | Public      | Better Auth handler (sign-up, sign-in, sign-out, get-session, …). |
-| `GET`  | `/api`             | 🔒 Required | Example route → `{ "message": "Hello from hono" }`.               |
-| `ALL`  | `/api/*` (unknown) | 🔒 Required | Catch-all → `404 { "message": "NOT_FOUND" }`.                     |
-| `*`    | everything else    | Public      | Served by the SPA (Vite in dev, static `index.html` in prod).     |
+| Method | Path               | Auth        | Description                                                                         |
+| ------ | ------------------ | ----------- | ----------------------------------------------------------------------------------- |
+| `ALL`  | `/api/auth/*`      | Public      | Better Auth handler (sign-up, sign-in, sign-out, get-session, …).                   |
+| `GET`  | `/api`             | 🔒 Required | Example route → `{ "message": "Hello from hono" }`.                                 |
+| `ALL`  | `/api/*` (unknown) | 🔒 Required | Fallback in [`app.ts`](apps/backend/src/app.ts) → `404 { "message": "NOT_FOUND" }`. |
+| `*`    | everything else    | Public      | Served by the SPA (Vite in dev, static `index.html` in prod).                       |
 
 Everything under `/api/*` (except `/api/auth/*`) is protected by the [`isAuthenticated`](apps/backend/src/middleware/is-authenticated-middleware.ts) middleware, so an unknown `/api` path returns `401` to signed-out users and `404` to signed-in ones.
 
-> **Add new API routes before the `.all('*')` catch-all** in [`_route.ts`](pkg/api/src/_route.ts). Hono runs handlers in registration order, so anything chained after it is unreachable.
+The 404 fallback is registered in [`app.ts`](apps/backend/src/app.ts) right after `app.route('/api', _route)`, not inside `_route`. Routes in [`_route.ts`](pkg/api/src/_route.ts) can therefore be chained in any order, and `AppType` contains only real routes.
 
 ### Auth endpoints (Better Auth)
 
@@ -290,7 +298,12 @@ The client is typed with `hc<AppType>()`, where `AppType` is the _type_ of the H
 
 ### Error handling & logging
 
-Throw an `ErrorHandler(message, code, reason)` from [`@repo/utils`](pkg/utils/src/utils.ts) anywhere in the API; the global `onError` serializes it to a clean JSON response and logs it via Pino (to `logs/`). Unexpected errors return a generic `INTERNAL_SERVER_ERROR` — internal details are logged, never sent to the client.
+Throw an `ErrorHandler(message, code, reason)` from [`@repo/utils`](pkg/utils/src/utils.ts) anywhere in the API; the global `onError` serializes it to a clean JSON response and logs it via Pino. `4xx` errors (bad input, missing session, CSRF rejections) are logged with `logger.warn`; `5xx` and unexpected errors with `logger.error`. Unexpected errors return a generic `INTERNAL_SERVER_ERROR` — internal details are logged, never sent to the client.
+
+Where logs go ([`logger.ts`](pkg/utils/src/logger.ts)):
+
+- **Production:** stdout, as JSON.
+- **Development:** `logs/info.log` and `logs/error.log`. The folder is created automatically.
 
 ---
 
@@ -331,13 +344,13 @@ bun run test
 
 ## Continuous integration
 
-[`.github/workflows/ci.yaml`](.github/workflows/ci.yaml) runs on every pull request to `master`:
+[`.github/workflows/ci.yaml`](.github/workflows/ci.yaml) runs on every pull request to `master` and on every push to `master` (so the merged result is checked too):
 
 1. Starts a **PostgreSQL 16** service container.
 2. Installs dependencies with the Bun version pinned in `packageManager` (`--frozen-lockfile`).
 3. Writes a dummy `apps/backend/.env` (no `NODE_ENV`, same as local).
 4. Applies migrations with `db:migrate:deploy`, then runs `db:gen`.
-5. Runs `lint`, `test`, and `typecheck` across all workspaces.
+5. Runs `lint`, `test`, and `typecheck` across all workspaces, then `build`.
 
 A PR should not be merged until this check is green.
 
@@ -372,11 +385,11 @@ Follow this loop for every task so the repo stays healthy and reviewable:
      .get("/me", (c) => {
        const session = c.get("session"); // typed, provided by middleware
        return c.json({ user: session?.user ?? null });
-     })
-     .all("*", (c) =>
-       c.json({ message: HTTPText.NOT_FOUND }, HTTPCode.NOT_FOUND),
-     ); // keep last
+     });
    ```
+
+   Order does not matter, and there is no catch-all to keep last: unknown `/api` paths
+   get their JSON 404 from [`app.ts`](apps/backend/src/app.ts).
 
 2. `AppType` updates automatically — the frontend RPC client is instantly typed for `/api/me`. Because the route lives under `/api`, it's protected by the auth guard by default.
 
@@ -421,6 +434,20 @@ bun run start      # sets NODE_ENV=production
 
 The production server serves the static SPA and the API from the same port defined by `PORT`.
 
+`NODE_ENV` is set by the script, not by `.env`: `bun run start` runs
+`NODE_ENV=production bun src/app-prod.ts`. If you start the server some other way, for
+example `bun src/app-prod.ts` directly in a Dockerfile, **set `NODE_ENV=production`
+yourself**. Without it, env validation in [`@repo/env`](pkg/env/src/env.ts) fails and the
+process exits on startup.
+
+```dockerfile
+ENV NODE_ENV=production
+CMD ["bun", "apps/backend/src/app-prod.ts"]
+```
+
+In production, logs are written to **stdout** as JSON (collect them with your platform's
+log driver). The `logs/` files are only used in development.
+
 ---
 
 ## Security notes
@@ -432,6 +459,12 @@ The production server serves the static SPA and the API from the same port defin
 - **Security headers** on every response via Hono's [`secureHeaders()`](https://hono.dev/docs/middleware/builtin/secure-headers) (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, HSTS, `Referrer-Policy`, …). No CSP is set yet; add one with `secureHeaders({ contentSecurityPolicy })` once you know your asset origins.
 - **CSRF protection** on `/api/*` via Hono's [`csrf()`](https://hono.dev/docs/middleware/builtin/csrf): cross-site **form-style** writes (`application/x-www-form-urlencoded`, `multipart/form-data`, `text/plain`, or no content type) are rejected with `403` unless `Origin` or `Sec-Fetch-Site` says same-origin. Cross-origin JSON requests are blocked by the browser's CORS preflight, since no CORS is enabled. Behind a TLS-terminating proxy, make sure the request URL keeps the public `https://` origin, or form posts from older browsers without `Sec-Fetch-Site` will be rejected.
 - **Keep `.env` files out of version control** (already covered by `.gitignore`). Rotate any secret that has been shared or committed.
+
+---
+
+## License
+
+[MIT](LICENSE) © 2026 vyar20
 
 ---
 

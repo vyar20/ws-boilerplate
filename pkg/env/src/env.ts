@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
-const envSchema = z.object({
+export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production'], {
-    error: 'NODE_ENV should one of development | production.'
+    error: 'NODE_ENV should be one of development | production.'
   }),
   DATABASE_URL: z
     .url({ error: 'DATABASE_URL is required' })
@@ -11,24 +11,26 @@ const envSchema = z.object({
     }),
   PORT: z.coerce.number({ error: 'PORT is required.' }),
   BETTER_AUTH_SECRET: z
-    .string({ error: 'BETTER_AUTH_SECRET is requred.' })
+    .string({ error: 'BETTER_AUTH_SECRET is required.' })
     .min(32, { error: 'BETTER_AUTH_SECRET min length 32.' }),
   BETTER_AUTH_URL: z
-    .url({ error: 'BETTER_AUTH_URL is requred.' })
+    .url({ error: 'BETTER_AUTH_URL is required.' })
     .startsWith('http', {
       error: 'BETTER_AUTH_URL should start with http or https.'
     }),
+  // Not used yet; reserved for app-level encryption. Still validated if set.
   ENCRYPTION_KEY: z
-    .string({ error: 'ENCRYPTION_KEY is requred.' })
+    .string()
     .min(32, { error: 'ENCRYPTION_KEY min length 32.' })
+    .optional()
 })
 
 export const env = (() => {
   const parsed = envSchema.safeParse(process.env)
 
   if (!parsed.success) {
-    console.log(
-      `Invalid environtment variables: ${JSON.stringify(parsed.error.issues, null, 2)}`
+    console.error(
+      `Invalid environment variables: ${JSON.stringify(parsed.error.issues, null, 2)}`
     )
 
     process.exit(1)

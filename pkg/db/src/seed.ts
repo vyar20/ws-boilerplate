@@ -13,7 +13,7 @@ const createUserAuth = async () => {
   })
 
   await Promise.all(
-    Array.from({ length: 1000 }).map(async (_, i) => {
+    Array.from({ length: 100 }).map(async (_, i) => {
       await auth.api.signUpEmail({
         body: {
           name: `User ${i}`,
