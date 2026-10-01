@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     branches:
       - master
@@ -46,9 +49,6 @@ jobs:
           ENCRYPTION_KEY=ci-dummy-encryption-key-00000000000000000
           EOF
 
-      - name: Make logs dir
-        run: mkdir logs
-
       - name: Prisma Migration
         run: bun run db:migrate:deploy
 
@@ -63,3 +63,6 @@ jobs:
 
       - name: typecheck
         run: bun run typecheck
+
+      - name: build
+        run: bun run build
