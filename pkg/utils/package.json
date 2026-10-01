@@ -16,6 +16,7 @@
         "pino": "^10.3.1"
     },
     "devDependencies": {
-        "@repo/config": "workspace:*"
+        "@repo/config": "workspace:*",
+        "pino-pretty": "^13.1.3"
     }
 }

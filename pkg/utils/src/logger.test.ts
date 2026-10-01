@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test'
 type Target = {
   level: string
   target: string
-  options: { destination: string; mkdir: boolean }
+  options: { destination?: string; mkdir?: boolean; colorize?: boolean }
 }
 
 // pino is mocked so the test checks the configuration chosen per environment
@@ -32,23 +32,31 @@ describe('createLogger', () => {
     expect(transport).not.toHaveBeenCalled()
   })
 
-  it('writes info and error files under logs/ in development', () => {
+  it('pretty-prints to the terminal and writes files under logs/ in development', () => {
     createLogger('development')
 
     const { targets } = transport.mock.calls[0]![0]
     expect(targets.map((t) => [t.level, t.target])).toEqual([
+      ['info', 'pino-pretty'],
       ['info', 'pino/file'],
       ['error', 'pino/file']
     ])
-    expect(targets[0]!.options.destination).toMatch(/logs\/info\.log$/)
-    expect(targets[1]!.options.destination).toMatch(/logs\/error\.log$/)
+    expect(targets[1]!.options.destination).toMatch(/logs\/info\.log$/)
+    expect(targets[2]!.options.destination).toMatch(/logs\/error\.log$/)
   })
 
   it('creates the logs/ folder automatically', () => {
     createLogger('development')
 
     const { targets } = transport.mock.calls[0]![0]
-    expect(targets.every((t) => t.options.mkdir)).toBe(true)
+    const files = targets.filter((t) => t.target === 'pino/file')
+    expect(files.every((t) => t.options.mkdir)).toBe(true)
+  })
+
+  it('never uses pino-pretty in production', () => {
+    createLogger('production')
+
+    expect(transport).not.toHaveBeenCalled()
   })
 
   it('defaults to file logging when NODE_ENV is not production', () => {

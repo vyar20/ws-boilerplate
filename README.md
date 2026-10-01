@@ -31,20 +31,20 @@ Fork it, set a few environment variables, and start building.
 
 ## Tech stack
 
-| Area                      | Technology                                                                    |
-| ------------------------- | ----------------------------------------------------------------------------- |
-| Runtime / package manager | **Bun** (workspaces, `--hot`, runs the backend TypeScript directly)           |
-| Language                  | **TypeScript**                                                                |
-| HTTP server               | **Hono** + Hono RPC (`hc`) client                                             |
-| Authentication            | **Better Auth** (email & password)                                            |
-| Database                  | **Prisma** ORM + `@prisma/adapter-pg` (**PostgreSQL**)                        |
-| Frontend                  | **React 19**, **React Router**, **Vite**                                      |
-| Data fetching             | **TanStack Query** (React Query)                                              |
-| Forms & validation        | **react-hook-form** + **Zod** (shared schemas)                                |
-| UI                        | **Tailwind CSS v4**, **shadcn / base-ui** (incl. Toast), **lucide-react**     |
-| State management (client) | **Zustand** (theme store in `@repo/context`)                                  |
-| Logging                   | **Pino** (stdout in production, files in development)                         |
-| Tooling                   | **ESLint**, **Prettier**, **React Compiler** (scaffolded, currently disabled) |
+| Area                      | Technology                                                                |
+| ------------------------- | ------------------------------------------------------------------------- |
+| Runtime / package manager | **Bun** (workspaces, `--hot`, runs the backend TypeScript directly)       |
+| Language                  | **TypeScript**                                                            |
+| HTTP server               | **Hono** + Hono RPC (`hc`) client                                         |
+| Authentication            | **Better Auth** (email & password)                                        |
+| Database                  | **Prisma** ORM + `@prisma/adapter-pg` (**PostgreSQL**)                    |
+| Frontend                  | **React 19**, **React Router**, **Vite**                                  |
+| Data fetching             | **TanStack Query** (React Query)                                          |
+| Forms & validation        | **react-hook-form** + **Zod** (shared schemas)                            |
+| UI                        | **Tailwind CSS v4**, **shadcn / base-ui** (incl. Toast), **lucide-react** |
+| State management (client) | **Zustand** (theme store in `@repo/context`)                              |
+| Logging                   | **Pino** (stdout in production, files in development)                     |
+| Tooling                   | **ESLint**, **Prettier**, **pino-pretty** (dev logs)                      |
 
 ---
 
@@ -401,6 +401,17 @@ bun run test
    `typecheck` and `build`. The job is named `lint - test - typecheck - build`.
 
 A PR should not be merged until this check is green.
+
+### Dependency updates
+
+[`.github/dependabot.yml`](.github/dependabot.yml) checks **weekly** for updates to Bun
+packages (the root `bun.lock`, which covers every workspace) and GitHub Actions:
+
+- All **minor and patch** updates are grouped into **one PR** per ecosystem.
+- Each **major** update gets its **own PR per package**, so breaking changes are reviewed one at a time.
+- At most **5** Dependabot PRs are open at once per ecosystem.
+
+Dependabot PRs go through the same CI as any other PR.
 
 ---
 
