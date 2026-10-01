@@ -28,20 +28,20 @@ Fork it, set a few environment variables, and start building.
 
 ## Tech stack
 
-| Area                      | Technology                                                                               |
-| ------------------------- | ---------------------------------------------------------------------------------------- |
-| Runtime / package manager | **Bun** (workspaces, `--hot`, bundler for the backend)                                   |
-| Language                  | **TypeScript**                                                                           |
-| HTTP server               | **Hono** + Hono RPC (`hc`) client                                                        |
-| Authentication            | **Better Auth** (email & password)                                                       |
-| Database                  | **Prisma** ORM + `@prisma/adapter-pg` (**PostgreSQL**)                                   |
-| Frontend                  | **React 19**, **React Router**, **Vite**                                                 |
-| Data fetching             | **TanStack Query** (React Query)                                                         |
-| Forms & validation        | **react-hook-form** + **Zod** (shared schemas)                                           |
-| UI                        | **Tailwind CSS v4**, **shadcn / base-ui**, **lucide-react**, **sonner**                  |
-| State management (client) | **Zustand** (theme store in `@repo/context`)                                             |
-| Logging                   | **Pino** (file transport)                                                                |
-| Tooling                   | **ESLint**, **Prettier**, **React Compiler** (scaffolded, currently disabled)            |
+| Area                      | Technology                                                                    |
+| ------------------------- | ----------------------------------------------------------------------------- |
+| Runtime / package manager | **Bun** (workspaces, `--hot`, bundler for the backend)                        |
+| Language                  | **TypeScript**                                                                |
+| HTTP server               | **Hono** + Hono RPC (`hc`) client                                             |
+| Authentication            | **Better Auth** (email & password)                                            |
+| Database                  | **Prisma** ORM + `@prisma/adapter-pg` (**PostgreSQL**)                        |
+| Frontend                  | **React 19**, **React Router**, **Vite**                                      |
+| Data fetching             | **TanStack Query** (React Query)                                              |
+| Forms & validation        | **react-hook-form** + **Zod** (shared schemas)                                |
+| UI                        | **Tailwind CSS v4**, **shadcn / base-ui**, **lucide-react**, **sonner**       |
+| State management (client) | **Zustand** (theme store in `@repo/context`)                                  |
+| Logging                   | **Pino** (file transport)                                                     |
+| Tooling                   | **ESLint**, **Prettier**, **React Compiler** (scaffolded, currently disabled) |
 
 ---
 
@@ -92,16 +92,16 @@ Every workspace package is published internally as `@repo/<name>` and consumed v
 
 ### Packages
 
-| Package                 | Purpose                                                                                                                                            | Key exports                                                                                                        |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| **`@repo/api`**         | API layer. Hono route definitions and Better Auth configuration. Exposes the route _type_ (`AppType`) that the RPC client is built from.            | `./client` → `AppType` (type-only), `./_route` (route + `AppType` + `Env`), `./auth` (server-only Better Auth instance) |
-| **`@repo/db`**          | Prisma client (singleton) + `pg` adapter and the schema/models (`User`, `Session`, `Account`, `Verification`).                                     | `.` → `db`                                                                                                         |
-| **`@repo/env`**         | Loads and **validates** `process.env` with Zod. Exits the process on invalid/missing vars, and returns _coerced_ values (e.g. `PORT` as a number). | `.` → `env`                                                                                                        |
-| **`@repo/validations`** | Shared Zod schemas used on both client and server (sign-in, sign-up, password policy).                                                             | `./sign-in-validation`, `./sign-up-validation`                                                                     |
-| **`@repo/react-query`** | TanStack Query hooks that wrap the auth client, plus the typed Hono RPC client (`api`) and the Better Auth browser client (`authClient`).           | `./auth/use-session`, `./auth/use-sign-in`, `./auth/use-sign-up`, `./auth/use-sign-out`, `./lib/rpc` (`api`), `./lib/auth-client` (`authClient`) |
-| **`@repo/context`**     | Client-side state stores. Currently a Zustand store for the light/dark theme.                                                                       | `./theme-context` (`themeContext`)                                                                                 |
-| **`@repo/utils`**       | Cross-cutting helpers: `HTTPCode`/`HTTPText`, `ErrorHandler`, `EventLogType`, `maskEmail`, a promise-tuple helper `p`, and the Pino `logger`.      | `.` → `utils.ts`, `./logger`                                                                                       |
-| **`@repo/config`**      | Shared `tsconfig` base, ESLint config, Prettier config, and the happy-dom test preload.                                                            | `./tsconfig`, `./eslint`, `./prettier`, `./happydom`                                                               |
+| Package                 | Purpose                                                                                                                                            | Key exports                                                                                                                                      |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`@repo/api`**         | API layer. Hono route definitions and Better Auth configuration. Exposes the route _type_ (`AppType`) that the RPC client is built from.           | `./client` → `AppType` (type-only), `./_route` (route + `AppType` + `Env`), `./auth` (server-only Better Auth instance)                          |
+| **`@repo/db`**          | Prisma client (singleton) + `pg` adapter and the schema/models (`User`, `Session`, `Account`, `Verification`).                                     | `.` → `db`                                                                                                                                       |
+| **`@repo/env`**         | Loads and **validates** `process.env` with Zod. Exits the process on invalid/missing vars, and returns _coerced_ values (e.g. `PORT` as a number). | `.` → `env`                                                                                                                                      |
+| **`@repo/validations`** | Shared Zod schemas used on both client and server (sign-in, sign-up, password policy).                                                             | `./sign-in-validation`, `./sign-up-validation`                                                                                                   |
+| **`@repo/react-query`** | TanStack Query hooks that wrap the auth client, plus the typed Hono RPC client (`api`) and the Better Auth browser client (`authClient`).          | `./auth/use-session`, `./auth/use-sign-in`, `./auth/use-sign-up`, `./auth/use-sign-out`, `./lib/rpc` (`api`), `./lib/auth-client` (`authClient`) |
+| **`@repo/context`**     | Client-side state stores. Currently a Zustand store for the light/dark theme.                                                                      | `./theme-context` (`themeContext`)                                                                                                               |
+| **`@repo/utils`**       | Cross-cutting helpers: `HTTPCode`/`HTTPText`, `ErrorHandler`, `EventLogType`, `maskEmail`, a promise-tuple helper `p`, and the Pino `logger`.      | `.` → `utils.ts`, `./logger`                                                                                                                     |
+| **`@repo/config`**      | Shared `tsconfig` base, ESLint config, Prettier config, and the happy-dom test preload.                                                            | `./tsconfig`, `./eslint`, `./prettier`, `./happydom`                                                                                             |
 
 ---
 
@@ -136,7 +136,6 @@ Create the backend env file (see [Environment variables](#environment-variables)
 **`apps/backend/.env`**
 
 ```dotenv
-NODE_ENV=development
 PORT=3000
 DATABASE_URL=postgresql://user:password@localhost:5432/mydb
 BETTER_AUTH_SECRET=replace-with-a-random-string-at-least-32-chars
@@ -180,12 +179,16 @@ Validated in [`pkg/env/src/env.ts`](pkg/env/src/env.ts). The app **won't start**
 
 | Variable             | Type / rule                                  | Description                                  |
 | -------------------- | -------------------------------------------- | -------------------------------------------- |
-| `NODE_ENV`           | `development` \| `production`                | Runtime mode.                                |
 | `PORT`               | number                                       | Port the server listens on.                  |
 | `DATABASE_URL`       | starts with `postgres://` or `postgresql://` | PostgreSQL connection string.                |
 | `BETTER_AUTH_SECRET` | string, min 32 chars                         | Secret used by Better Auth to sign sessions. |
 | `BETTER_AUTH_URL`    | URL starting with `http`                     | Public base URL of the auth server.          |
 | `ENCRYPTION_KEY`     | string, min 32 chars                         | Reserved for app-level encrypt/decrypt.      |
+
+`NODE_ENV` (`development` | `production`) is still validated but **not set in `.env`**: each
+script sets it for you. `dev`, `db:*` and `auth:gen` use `development`; `start`,
+`db:migrate:deploy` and `db:migrate:status` use `production`. Run any other entry point
+that imports `@repo/env` with `NODE_ENV` set, or it exits on startup.
 
 ### Frontend
 
@@ -209,7 +212,7 @@ Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 | `bun run dev`               | Start the backend in dev mode (Hono + Vite HMR) on one port.                                                |
 | `bun run build`             | Build the frontend for production.                                                                          |
 | `bun run start`             | Start the backend in production mode (serves the static build).                                             |
-| `bun run test`              | Run the unit test suites in each workspace that defines a `test` script (`bun test`).                        |
+| `bun run test`              | Run the unit test suites in each workspace that defines a `test` script (`bun test`).                       |
 | `bun run db:gen`            | Generate the Prisma client.                                                                                 |
 | `bun run db:push`           | Push the Prisma schema to the database (no migration history — dev/prototyping only).                       |
 | `bun run db:seed`           | Seed the database (runs [`pkg/db/src/seed.ts`](pkg/db/src/seed.ts)).                                        |
@@ -226,12 +229,12 @@ Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 
 ### Backend (Hono)
 
-| Method | Path            | Auth        | Description                                                       |
-| ------ | --------------- | ----------- | ----------------------------------------------------------------- |
-| `ALL`  | `/api/auth/*`   | Public      | Better Auth handler (sign-up, sign-in, sign-out, get-session, …). |
-| `GET`  | `/api`          | 🔒 Required | Example route → `{ "message": "Hello from hono" }`.               |
-| `ALL`  | `/api/*` (unknown) | 🔒 Required | Catch-all → `404 { "message": "NOT_FOUND" }`.                  |
-| `*`    | everything else | Public      | Served by the SPA (Vite in dev, static `index.html` in prod).     |
+| Method | Path               | Auth        | Description                                                       |
+| ------ | ------------------ | ----------- | ----------------------------------------------------------------- |
+| `ALL`  | `/api/auth/*`      | Public      | Better Auth handler (sign-up, sign-in, sign-out, get-session, …). |
+| `GET`  | `/api`             | 🔒 Required | Example route → `{ "message": "Hello from hono" }`.               |
+| `ALL`  | `/api/*` (unknown) | 🔒 Required | Catch-all → `404 { "message": "NOT_FOUND" }`.                     |
+| `*`    | everything else    | Public      | Served by the SPA (Vite in dev, static `index.html` in prod).     |
 
 Everything under `/api/*` (except `/api/auth/*`) is protected by the [`isAuthenticated`](apps/backend/src/middleware/is-authenticated-middleware.ts) middleware, so an unknown `/api` path returns `401` to signed-out users and `404` to signed-in ones.
 
@@ -384,7 +387,7 @@ Add a route object to [`apps/frontend/src/app/router.tsx`](apps/frontend/src/app
 
 ```bash
 bun run build      # build the frontend → apps/frontend/dist
-NODE_ENV=production bun run start
+bun run start      # sets NODE_ENV=production
 ```
 
 The production server serves the static SPA and the API from the same port defined by `PORT`.

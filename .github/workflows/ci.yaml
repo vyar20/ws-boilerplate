@@ -39,7 +39,6 @@ jobs:
       - name: Create dummy env for codegen
         run: |
           cat > apps/backend/.env <<'EOF'
-          NODE_ENV=development
           PORT=3000
           DATABASE_URL=postgresql://ci:ci@localhost:5432/ci
           BETTER_AUTH_SECRET=ci-dummy-better-auth-secret-000000000000
