@@ -414,6 +414,9 @@ packages (the root `bun.lock`, which covers every workspace) and GitHub Actions:
 - All **minor and patch** updates are grouped into **one PR** per ecosystem.
 - Each **major** update gets its **own PR per package**, so breaking changes are reviewed one at a time.
 - At most **5** Dependabot PRs are open at once per ecosystem.
+- **TypeScript is pinned:** Dependabot ignores `typescript` entirely (no major, minor or
+  patch PRs). It stays at the version in `apps/frontend/package.json` (`~6.0.2`, locked
+  to 6.0.3) until someone upgrades it deliberately. `typescript-eslint` is still updated.
 
 Dependabot PRs go through the same CI as any other PR.
 

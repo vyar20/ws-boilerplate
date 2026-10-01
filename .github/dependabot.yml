@@ -7,6 +7,10 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    # TypeScript is held at its current version on purpose: no Dependabot
+    # updates of any kind (major, minor or patch). Upgrade it manually.
+    ignore:
+      - dependency-name: "typescript"
     groups:
       # One PR for all minor/patch bumps. Majors are not matched here, so each
       # major update gets its own PR per package.
