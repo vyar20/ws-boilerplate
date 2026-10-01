@@ -24,6 +24,7 @@ Fork it, set a few environment variables, and start building.
 - [Recipes](#recipes)
 - [Production build](#production-build)
 - [Security notes](#security-notes)
+- [License](#license)
 
 ---
 
@@ -74,7 +75,8 @@ Fork it, set a few environment variables, and start building.
 │   ├── utils/          # HTTP helpers, error handler, logger
 │   └── validations/    # Shared Zod schemas
 ├── logs/               # Pino log files in development (auto-created, gitignored)
-├── package.json        # Root workspace + scripts
+├── LICENSE             # MIT
+├── package.json        # Root workspace, scripts, shared tooling devDependencies
 └── README.md
 ```
 
@@ -83,6 +85,12 @@ Fork it, set a few environment variables, and start building.
 ## Packages & apps
 
 Every workspace package is published internally as `@repo/<name>` and consumed via `workspace:*`.
+
+**Dependencies live where they are imported.** Each workspace declares its own runtime
+dependencies (including peers such as `react` for `zustand` or `zod` for
+`@hookform/resolvers`); the root `package.json` only holds shared tooling
+devDependencies (TypeScript types, ESLint, Prettier, test libraries). Add a package
+with `bun add <pkg> --cwd <workspace>`, not at the root.
 
 ### Apps
 
@@ -451,6 +459,12 @@ log driver). The `logs/` files are only used in development.
 - **Security headers** on every response via Hono's [`secureHeaders()`](https://hono.dev/docs/middleware/builtin/secure-headers) (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, HSTS, `Referrer-Policy`, …). No CSP is set yet; add one with `secureHeaders({ contentSecurityPolicy })` once you know your asset origins.
 - **CSRF protection** on `/api/*` via Hono's [`csrf()`](https://hono.dev/docs/middleware/builtin/csrf): cross-site **form-style** writes (`application/x-www-form-urlencoded`, `multipart/form-data`, `text/plain`, or no content type) are rejected with `403` unless `Origin` or `Sec-Fetch-Site` says same-origin. Cross-origin JSON requests are blocked by the browser's CORS preflight, since no CORS is enabled. Behind a TLS-terminating proxy, make sure the request URL keeps the public `https://` origin, or form posts from older browsers without `Sec-Fetch-Site` will be rejected.
 - **Keep `.env` files out of version control** (already covered by `.gitignore`). Rotate any secret that has been shared or committed.
+
+---
+
+## License
+
+[MIT](LICENSE) © 2026 vyar20
 
 ---
 
