@@ -18,11 +18,8 @@ export const auth = betterAuth({
         logger.info({
           type: EventLogType.USER_LOGGED_IN,
           message: 'User Login',
-          data: {
-            ...ctx.body,
-            email: maskEmail(ctx.body?.email),
-            password: '*************'
-          }
+          // Allowlist: never spread the raw request body into logs.
+          data: { email: maskEmail(ctx.body?.email) }
         })
         return
       }
@@ -39,11 +36,7 @@ export const auth = betterAuth({
       logger.info({
         type: EventLogType.USER_CREATED,
         message: 'New User Created',
-        data: {
-          ...ctx.body,
-          email: maskEmail(ctx.body?.email),
-          password: '*************'
-        }
+        data: { email: maskEmail(ctx.body?.email) }
       })
     })
   },
