@@ -22,8 +22,10 @@ export const frontendPath = path.resolve(
 app.use('*', secureHeaders())
 // Rejects cross-site form-style writes (form/multipart/text/plain bodies) by
 // Origin / Sec-Fetch-Site. Cross-origin JSON is already stopped by the CORS
-// preflight, since no CORS is enabled.
-app.use('/api/*', csrf())
+// preflight, since no CORS is enabled. The origin comes from BETTER_AUTH_URL
+// (the public URL) rather than the request URL, which is http:// behind a
+// TLS-terminating proxy and would never match the browser's https:// Origin.
+app.use('/api/*', csrf({ origin: new URL(env.BETTER_AUTH_URL).origin }))
 app.use('/api/*', sessionMiddleware)
 app.all('/api/auth/*', (c) => auth.handler(c.req.raw))
 app.use('/api/*', isAuthenticatedMiddleware)

@@ -10,7 +10,13 @@ const logError = mock((_obj: unknown) => {})
 const logWarn = mock((_obj: unknown) => {})
 
 mock.module('@repo/env', () => ({
-  env: { NODE_ENV: 'development', PORT: 3000 }
+  // Public https URL while app.request() uses http://localhost, like a
+  // TLS-terminating reverse proxy in front of the app.
+  env: {
+    NODE_ENV: 'development',
+    PORT: 3000,
+    BETTER_AUTH_URL: 'https://app.example.com/some/path'
+  }
 }))
 mock.module('@repo/utils/logger', () => ({
   logger: { error: logError, warn: logWarn, info: mock() }
@@ -166,7 +172,8 @@ describe('security headers', () => {
 })
 
 describe('csrf', () => {
-  // app.request() resolves against http://localhost, so that is "same origin".
+  const PUBLIC_ORIGIN = 'https://app.example.com'
+
   const formPost = (path: string, origin: string) =>
     app.request(path, {
       method: 'POST',
@@ -199,11 +206,23 @@ describe('csrf', () => {
     expect(authHandler).not.toHaveBeenCalled()
   })
 
-  it('lets a same-origin form POST through', async () => {
-    const res = await formPost('/api/auth/sign-in/email', 'http://localhost')
+  it('accepts the BETTER_AUTH_URL origin although the request URL is http', async () => {
+    const res = await formPost('/api/auth/sign-in/email', PUBLIC_ORIGIN)
 
     expect(res.status).toBe(200)
     expect(authHandler).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    'http://localhost',
+    'http://app.example.com',
+    'https://app.example.com:8443',
+    'https://evil.app.example.com'
+  ])('rejects any other origin (%s) with 403', async (origin) => {
+    const res = await formPost('/api/auth/sign-in/email', origin)
+
+    expect(res.status).toBe(403)
+    expect(authHandler).not.toHaveBeenCalled()
   })
 
   it('lets a same-origin browser request through via Sec-Fetch-Site', async () => {
