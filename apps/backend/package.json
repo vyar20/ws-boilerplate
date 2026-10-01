@@ -4,9 +4,9 @@
     "private": true,
     "scripts": {
         "dev": "bun run development",
-        "development": "bun --hot src/app-dev.ts ",
+        "development": "NODE_ENV=development bun --hot src/app-dev.ts ",
         "start": "bun run prod",
-        "prod": "bun src/app-prod.ts",
+        "prod": "NODE_ENV=production bun src/app-prod.ts",
         "typecheck": "tsc --noEmit",
         "lint": "eslint .",
         "test": "bun test",

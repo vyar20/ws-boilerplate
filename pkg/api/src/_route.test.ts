@@ -11,9 +11,13 @@ describe('_route', () => {
     expect(await res.json()).toEqual({ message: 'Hello from hono' })
   })
 
-  it('returns 404 for an unknown path', async () => {
-    const res = await _route.request('/does-not-exist')
+  it.each(['GET', 'POST', 'DELETE'])(
+    'returns a JSON 404 for an unknown path (%s)',
+    async (method) => {
+      const res = await _route.request('/does-not-exist', { method })
 
-    expect(res.status).toBe(404)
-  })
+      expect(res.status).toBe(404)
+      expect(await res.json()).toEqual({ message: 'NOT_FOUND' })
+    }
+  )
 })
