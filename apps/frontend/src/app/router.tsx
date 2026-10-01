@@ -13,7 +13,7 @@ export const router: RouteObject[] = [
     element: <ProtectedRoute />,
     children: [
       { path: '/dashboard', element: <Dashboard /> }
-      // Halaman baru yang butuh login cukup ditambah di sini, contoh:
+      // Add new pages that require sign-in here, e.g.:
       // { path: '/settings', element: <Settings /> }
     ]
   },

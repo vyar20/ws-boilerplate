@@ -8,20 +8,20 @@ const FullPageLoader: FC = () => (
   </div>
 )
 
-// Halaman yang wajib login
+// Pages that require a signed-in user.
 export const ProtectedRoute: FC = () => {
   const { data: session, isPending } = useSession()
   const location = useLocation()
 
   if (isPending) return <FullPageLoader />
 
-  // Simpan halaman asal supaya setelah login bisa kembali ke sana
+  // Remember where the user was headed so sign-in can send them back there.
   if (!session) return <Navigate to='/' replace state={{ from: location }} />
 
   return <Outlet />
 }
 
-// Halaman yang hanya untuk user yang BELUM login (sign-in / sign-up)
+// Pages only for users who are NOT signed in yet (sign-in / sign-up).
 export const PublicOnlyRoute: FC = () => {
   const { data: session, isPending } = useSession()
   const location = useLocation()
