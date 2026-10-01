@@ -11,18 +11,33 @@ const SUCCESS_EVENTS: Record<
   string,
   { type: keyof typeof EventLogType; message: string } | undefined
 > = {
-  '/sign-in/email': { type: EventLogType.USER_LOGGED_IN, message: 'User Login' },
+  '/sign-in/email': {
+    type: EventLogType.USER_LOGGED_IN,
+    message: 'User Login'
+  },
   '/sign-up/email': {
     type: EventLogType.USER_CREATED,
     message: 'New User Created'
   }
 }
 
+// Unset: keep Better Auth's default IP headers. Set: trust only the header our
+// own proxy writes, so clients cannot pick their rate-limit key.
+export const ipAddressOptions = (header: string | undefined) =>
+  header ? { ipAddress: { ipAddressHeaders: [header] } } : undefined
+
 export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: 'postgresql'
   }),
   baseURL: env.BETTER_AUTH_URL,
+  // Counters live in Postgres (rateLimit table) so every instance shares them;
+  // in-memory counters would reset per process. Better Auth enables rate
+  // limiting in production only by default.
+  rateLimit: {
+    storage: 'database'
+  },
+  advanced: ipAddressOptions(env.TRUSTED_PROXY_IP_HEADER),
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
       if (ctx.path !== '/sign-up/email') return

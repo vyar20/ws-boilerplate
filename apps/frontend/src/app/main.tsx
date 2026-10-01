@@ -1,3 +1,5 @@
+// Side-effect import, must stay first: configures Zod before schemas are built.
+import '@/lib/zod-config'
 import { ReactQueryProvider } from '@/components/react-query-provider'
 import { ThemeProvider } from '@/components/theme-provider.tsx'
 import { Toaster } from '@/components/ui/toast'
