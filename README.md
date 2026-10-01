@@ -354,6 +354,17 @@ bun run test
 
 A PR should not be merged until this check is green.
 
+### Dependency updates
+
+[`.github/dependabot.yml`](.github/dependabot.yml) checks **weekly** for updates to Bun
+packages (the root `bun.lock`, which covers every workspace) and GitHub Actions:
+
+- All **minor and patch** updates are grouped into **one PR** per ecosystem.
+- Each **major** update gets its **own PR per package**, so breaking changes are reviewed one at a time.
+- At most **5** Dependabot PRs are open at once per ecosystem.
+
+Dependabot PRs go through the same CI as any other PR.
+
 ---
 
 ## Contributing workflow
