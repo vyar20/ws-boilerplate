@@ -7,12 +7,13 @@ let currentSession: unknown = null
 const getSession = mock(async (_opts: { headers: Headers }) => currentSession)
 const authHandler = mock(async (_req: Request) => new Response('auth-handled'))
 const logError = mock((_obj: unknown) => {})
+const logWarn = mock((_obj: unknown) => {})
 
 mock.module('@repo/env', () => ({
   env: { NODE_ENV: 'development', PORT: 3000 }
 }))
 mock.module('@repo/utils/logger', () => ({
-  logger: { error: logError, info: mock() }
+  logger: { error: logError, warn: logWarn, info: mock() }
 }))
 mock.module('@repo/api/auth', () => ({
   auth: { api: { getSession }, handler: authHandler }
@@ -21,13 +22,16 @@ mock.module('@repo/api/auth', () => ({
 const { ErrorHandler } = await import('@repo/utils')
 const { app } = await import('./app')
 
-// Registered outside /api: the API router's catch-all would shadow anything
-// added under /api after it. onError is app-wide, so coverage is unchanged.
+// Registered outside /api: app.ts's /api/* 404 fallback would shadow anything
+// added under /api after import. onError is app-wide, so coverage is unchanged.
 app.get('/test/boom', () => {
   throw new Error('db password=hunter2 leaked in stack')
 })
 app.get('/test/bad', () => {
   throw new ErrorHandler('Invalid input', 'BAD_REQUEST', 'field x missing')
+})
+app.get('/test/server-error', () => {
+  throw new ErrorHandler('Upstream down', 'INTERNAL_SERVER_ERROR', 'timeout')
 })
 
 const signedIn = { user: { id: 'u1' }, session: { id: 's1' } }
@@ -37,6 +41,7 @@ beforeEach(() => {
   getSession.mockClear()
   authHandler.mockClear()
   logError.mockClear()
+  logWarn.mockClear()
 })
 
 describe('app', () => {
@@ -106,10 +111,34 @@ describe('app', () => {
 
     expect(res.status).toBe(400)
     expect(await res.json()).toEqual({ message: 'Invalid input' })
-    expect(logError).toHaveBeenCalledWith({
+  })
+
+  it('logs a 4xx ErrorHandler as a warning, not an error', async () => {
+    await app.request('/test/bad')
+
+    expect(logWarn).toHaveBeenCalledWith({
       message: 'Invalid input',
       reason: 'field x missing'
     })
+    expect(logError).not.toHaveBeenCalled()
+  })
+
+  it('logs a missing session (401) as a warning', async () => {
+    await app.request('/api')
+
+    expect(logWarn).toHaveBeenCalledTimes(1)
+    expect(logError).not.toHaveBeenCalled()
+  })
+
+  it('logs a 5xx ErrorHandler as an error', async () => {
+    const res = await app.request('/test/server-error')
+
+    expect(res.status).toBe(500)
+    expect(logError).toHaveBeenCalledWith({
+      message: 'Upstream down',
+      reason: 'timeout'
+    })
+    expect(logWarn).not.toHaveBeenCalled()
   })
 
   it('hides unexpected error details from the client', async () => {
@@ -154,10 +183,17 @@ describe('csrf', () => {
     const res = await formPost('/api', 'https://evil.example')
 
     expect(res.status).toBe(403)
+    expect(logWarn).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 403, path: '/api' })
+    )
+    expect(logError).not.toHaveBeenCalled()
   })
 
   it('rejects a cross-origin form POST before it reaches Better Auth', async () => {
-    const res = await formPost('/api/auth/sign-in/email', 'https://evil.example')
+    const res = await formPost(
+      '/api/auth/sign-in/email',
+      'https://evil.example'
+    )
 
     expect(res.status).toBe(403)
     expect(authHandler).not.toHaveBeenCalled()

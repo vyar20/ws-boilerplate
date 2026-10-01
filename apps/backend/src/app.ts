@@ -38,10 +38,20 @@ app.all('/api/*', (c) =>
 app.onError((err, c) => {
   // Middleware such as csrf() rejects with an HTTPException carrying its own
   // response (e.g. 403); keep it instead of masking it as a 500.
-  if (err instanceof HTTPException) return err.getResponse()
+  if (err instanceof HTTPException) {
+    const log = err.status < 500 ? logger.warn : logger.error
+    log.call(logger, {
+      message: err.message,
+      status: err.status,
+      path: c.req.path
+    })
+    return err.getResponse()
+  }
 
   if (err instanceof ErrorHandler) {
-    logger.error({
+    // 4xx are client mistakes (bad input, no session): warn, don't page anyone.
+    const log = err.code < 500 ? logger.warn : logger.error
+    log.call(logger, {
       message: err.message,
       reason: err.reason
     })
