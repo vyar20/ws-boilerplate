@@ -170,7 +170,31 @@ bun run db:migrate     # apply the committed migrations to your database
 > prototyping you can use `bun run db:push` instead — it syncs the schema without
 > recording a migration, so don't use it on shared or production databases.
 
-### 5. Run the dev server
+### 5. (Optional) Seed dev users
+
+```bash
+bun run db:seed
+```
+
+Creates `admin@example.com` plus `user-0@example.com` … `user-99@example.com` through
+Better Auth's sign-up API, 10 at a time. It is safe to re-run: users whose email already
+exists are skipped, and the run reports how many were created and skipped.
+
+- **Password:** set `SEED_PASSWORD` (must pass the password policy) to choose it. If unset,
+  a random policy-compliant password is generated and **printed once** at the end; it is
+  not stored anywhere, so copy it then.
+- **Safety guard:** the seed only runs when the `DATABASE_URL` host is `localhost`,
+  `127.0.0.1` or `::1`. For any other host it prints the detected host (never the
+  credentials) and exits with code `1` before connecting. Set `ALLOW_SEED=true` to seed a
+  non-local database such as a shared staging DB.
+
+> ⚠️ **Never run the seed against a production database**, with or without `ALLOW_SEED`.
+> It creates well-known accounts that share one password.
+
+`SEED_PASSWORD` and `ALLOW_SEED` are read only by the seed, so they are not part of the
+validated env schema in `@repo/env`.
+
+### 6. Run the dev server
 
 ```bash
 bun run dev
@@ -221,24 +245,24 @@ build-time base URL is needed.
 
 Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 
-| Script                      | What it does                                                                                                |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `bun run dev`               | Start the backend in dev mode (Hono + Vite HMR) on one port.                                                |
-| `bun run build`             | Build the frontend for production.                                                                          |
-| `bun run start`             | Start the backend in production mode (serves the static build).                                             |
-| `bun run test`              | Run the unit test suites in each workspace that defines a `test` script (`bun test`).                       |
-| `bun run lint`              | Run ESLint in every workspace.                                                                              |
-| `bun run typecheck`         | Run `tsc --noEmit` in every workspace.                                                                      |
-| `bun run db:gen`            | Generate the Prisma client.                                                                                 |
-| `bun run db:push`           | Push the Prisma schema to the database (no migration history — dev/prototyping only).                       |
-| `bun run db:seed`           | Seed the database (runs [`pkg/db/src/seed.ts`](pkg/db/src/seed.ts)).                                        |
-| `bun run db:migrate`        | Create and apply a new migration in development (`prisma migrate dev`).                                     |
-| `bun run db:migrate:reset`  | ⚠️ **Drops all data**, then re-applies every migration (`prisma migrate reset --force`). Dev only.          |
-| `bun run db:migrate:deploy` | Apply all pending migrations without generating new ones (`prisma migrate deploy`) — for CI and production. |
-| `bun run db:migrate:status` | Show the status of migrations against the database.                                                         |
-| `bun run db:std`            | Open Prisma Studio.                                                                                         |
-| `bun run auth:gen`          | Regenerate Better Auth Prisma models.                                                                       |
-| `bun run del`               | Remove all `node_modules`/build output.                                                                     |
+| Script                      | What it does                                                                                                                       |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run dev`               | Start the backend in dev mode (Hono + Vite HMR) on one port.                                                                       |
+| `bun run build`             | Build the frontend for production.                                                                                                 |
+| `bun run start`             | Start the backend in production mode (serves the static build).                                                                    |
+| `bun run test`              | Run the unit test suites in each workspace that defines a `test` script (`bun test`).                                              |
+| `bun run lint`              | Run ESLint in every workspace.                                                                                                     |
+| `bun run typecheck`         | Run `tsc --noEmit` in every workspace.                                                                                             |
+| `bun run db:gen`            | Generate the Prisma client.                                                                                                        |
+| `bun run db:push`           | Push the Prisma schema to the database (no migration history — dev/prototyping only).                                              |
+| `bun run db:seed`           | Seed **local** dev users (runs [`apps/backend/src/seed.ts`](apps/backend/src/seed.ts)). See [Seeding](#5-optional-seed-dev-users). |
+| `bun run db:migrate`        | Create and apply a new migration in development (`prisma migrate dev`).                                                            |
+| `bun run db:migrate:reset`  | ⚠️ **Drops all data**, then re-applies every migration (`prisma migrate reset --force`). Dev only.                                 |
+| `bun run db:migrate:deploy` | Apply all pending migrations without generating new ones (`prisma migrate deploy`) — for CI and production.                        |
+| `bun run db:migrate:status` | Show the status of migrations against the database.                                                                                |
+| `bun run db:std`            | Open Prisma Studio.                                                                                                                |
+| `bun run auth:gen`          | Regenerate Better Auth Prisma models.                                                                                              |
+| `bun run del`               | Remove all `node_modules`/build output.                                                                                            |
 
 ---
 
