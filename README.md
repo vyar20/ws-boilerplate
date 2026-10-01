@@ -41,7 +41,7 @@ Fork it, set a few environment variables, and start building.
 | Forms & validation        | **react-hook-form** + **Zod** (shared schemas)                                |
 | UI                        | **Tailwind CSS v4**, **shadcn / base-ui** (incl. Toast), **lucide-react**     |
 | State management (client) | **Zustand** (theme store in `@repo/context`)                                  |
-| Logging                   | **Pino** (file transport)                                                     |
+| Logging                   | **Pino** (stdout in production, files in development)                         |
 | Tooling                   | **ESLint**, **Prettier**, **React Compiler** (scaffolded, currently disabled) |
 
 ---
@@ -73,7 +73,7 @@ Fork it, set a few environment variables, and start building.
 │   ├── react-query/    # TanStack Query hooks (auth) + the RPC & auth clients
 │   ├── utils/          # HTTP helpers, error handler, logger
 │   └── validations/    # Shared Zod schemas
-├── logs/               # Pino log output (gitignored)
+├── logs/               # Pino log files in development (auto-created, gitignored)
 ├── package.json        # Root workspace + scripts
 └── README.md
 ```
@@ -238,12 +238,12 @@ Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 
 ### Backend (Hono)
 
-| Method | Path               | Auth        | Description                                                       |
-| ------ | ------------------ | ----------- | ----------------------------------------------------------------- |
-| `ALL`  | `/api/auth/*`      | Public      | Better Auth handler (sign-up, sign-in, sign-out, get-session, …). |
-| `GET`  | `/api`             | 🔒 Required | Example route → `{ "message": "Hello from hono" }`.               |
+| Method | Path               | Auth        | Description                                                                         |
+| ------ | ------------------ | ----------- | ----------------------------------------------------------------------------------- |
+| `ALL`  | `/api/auth/*`      | Public      | Better Auth handler (sign-up, sign-in, sign-out, get-session, …).                   |
+| `GET`  | `/api`             | 🔒 Required | Example route → `{ "message": "Hello from hono" }`.                                 |
 | `ALL`  | `/api/*` (unknown) | 🔒 Required | Fallback in [`app.ts`](apps/backend/src/app.ts) → `404 { "message": "NOT_FOUND" }`. |
-| `*`    | everything else    | Public      | Served by the SPA (Vite in dev, static `index.html` in prod).     |
+| `*`    | everything else    | Public      | Served by the SPA (Vite in dev, static `index.html` in prod).                       |
 
 Everything under `/api/*` (except `/api/auth/*`) is protected by the [`isAuthenticated`](apps/backend/src/middleware/is-authenticated-middleware.ts) middleware, so an unknown `/api` path returns `401` to signed-out users and `404` to signed-in ones.
 
@@ -290,7 +290,12 @@ The client is typed with `hc<AppType>()`, where `AppType` is the _type_ of the H
 
 ### Error handling & logging
 
-Throw an `ErrorHandler(message, code, reason)` from [`@repo/utils`](pkg/utils/src/utils.ts) anywhere in the API; the global `onError` serializes it to a clean JSON response and logs it via Pino (to `logs/`). Unexpected errors return a generic `INTERNAL_SERVER_ERROR` — internal details are logged, never sent to the client.
+Throw an `ErrorHandler(message, code, reason)` from [`@repo/utils`](pkg/utils/src/utils.ts) anywhere in the API; the global `onError` serializes it to a clean JSON response and logs it via Pino. `4xx` errors (bad input, missing session, CSRF rejections) are logged with `logger.warn`; `5xx` and unexpected errors with `logger.error`. Unexpected errors return a generic `INTERNAL_SERVER_ERROR` — internal details are logged, never sent to the client.
+
+Where logs go ([`logger.ts`](pkg/utils/src/logger.ts)):
+
+- **Production:** stdout, as JSON.
+- **Development:** `logs/info.log` and `logs/error.log`. The folder is created automatically.
 
 ---
 
@@ -331,13 +336,13 @@ bun run test
 
 ## Continuous integration
 
-[`.github/workflows/ci.yaml`](.github/workflows/ci.yaml) runs on every pull request to `master`:
+[`.github/workflows/ci.yaml`](.github/workflows/ci.yaml) runs on every pull request to `master` and on every push to `master` (so the merged result is checked too):
 
 1. Starts a **PostgreSQL 16** service container.
 2. Installs dependencies with the Bun version pinned in `packageManager` (`--frozen-lockfile`).
 3. Writes a dummy `apps/backend/.env` (no `NODE_ENV`, same as local).
 4. Applies migrations with `db:migrate:deploy`, then runs `db:gen`.
-5. Runs `lint`, `test`, and `typecheck` across all workspaces.
+5. Runs `lint`, `test`, and `typecheck` across all workspaces, then `build`.
 
 A PR should not be merged until this check is green.
 
@@ -420,6 +425,20 @@ bun run start      # sets NODE_ENV=production
 ```
 
 The production server serves the static SPA and the API from the same port defined by `PORT`.
+
+`NODE_ENV` is set by the script, not by `.env`: `bun run start` runs
+`NODE_ENV=production bun src/app-prod.ts`. If you start the server some other way, for
+example `bun src/app-prod.ts` directly in a Dockerfile, **set `NODE_ENV=production`
+yourself**. Without it, env validation in [`@repo/env`](pkg/env/src/env.ts) fails and the
+process exits on startup.
+
+```dockerfile
+ENV NODE_ENV=production
+CMD ["bun", "apps/backend/src/app-prod.ts"]
+```
+
+In production, logs are written to **stdout** as JSON (collect them with your platform's
+log driver). The `logs/` files are only used in development.
 
 ---
 
