@@ -19,6 +19,7 @@ Fork it, set a few environment variables, and start building.
 - [Routes](#routes)
 - [How it works](#how-it-works)
 - [Testing](#testing)
+- [Continuous integration](#continuous-integration)
 - [Contributing workflow](#contributing-workflow)
 - [Recipes](#recipes)
 - [Production build](#production-build)
@@ -30,7 +31,7 @@ Fork it, set a few environment variables, and start building.
 
 | Area                      | Technology                                                                    |
 | ------------------------- | ----------------------------------------------------------------------------- |
-| Runtime / package manager | **Bun** (workspaces, `--hot`, bundler for the backend)                        |
+| Runtime / package manager | **Bun** (workspaces, `--hot`, runs the backend TypeScript directly)           |
 | Language                  | **TypeScript**                                                                |
 | HTTP server               | **Hono** + Hono RPC (`hc`) client                                             |
 | Authentication            | **Better Auth** (email & password)                                            |
@@ -38,7 +39,7 @@ Fork it, set a few environment variables, and start building.
 | Frontend                  | **React 19**, **React Router**, **Vite**                                      |
 | Data fetching             | **TanStack Query** (React Query)                                              |
 | Forms & validation        | **react-hook-form** + **Zod** (shared schemas)                                |
-| UI                        | **Tailwind CSS v4**, **shadcn / base-ui**, **lucide-react**, **sonner**       |
+| UI                        | **Tailwind CSS v4**, **shadcn / base-ui** (incl. Toast), **lucide-react**     |
 | State management (client) | **Zustand** (theme store in `@repo/context`)                                  |
 | Logging                   | **Pino** (file transport)                                                     |
 | Tooling                   | **ESLint**, **Prettier**, **React Compiler** (scaffolded, currently disabled) |
@@ -88,7 +89,7 @@ Every workspace package is published internally as `@repo/<name>` and consumed v
 | App                 | Description                                                                                                                                                                                                                                                                                                                                                   |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`apps/backend`**  | The Hono server. [`app.ts`](apps/backend/src/app.ts) builds the app (session middleware → Better Auth handler → auth guard → API routes → error handler). [`app-dev.ts`](apps/backend/src/app-dev.ts) runs it with Vite middleware for HMR; [`app-prod.ts`](apps/backend/src/app-prod.ts) serves the static build. Both API and frontend run on **one port**. |
-| **`apps/frontend`** | React 19 SPA (Vite + Tailwind v4). Providers for React Query, session, and theme; auth forms built with react-hook-form + shared Zod schemas; toasts via sonner.                                                                                                                                                                                              |
+| **`apps/frontend`** | React 19 SPA (Vite + Tailwind v4). Providers for React Query and theme; route guards in [`auth-guard.tsx`](apps/frontend/src/components/auth-guard.tsx); auth forms built with react-hook-form + shared Zod schemas; toasts via the [shadcn base-ui Toast](https://ui.shadcn.com/docs/components/base/toast).                                                 |
 
 ### Packages
 
@@ -186,9 +187,12 @@ Validated in [`pkg/env/src/env.ts`](pkg/env/src/env.ts). The app **won't start**
 | `ENCRYPTION_KEY`     | string, min 32 chars                         | Reserved for app-level encrypt/decrypt.      |
 
 `NODE_ENV` (`development` | `production`) is still validated but **not set in `.env`**: each
-script sets it for you. `dev`, `db:*` and `auth:gen` use `development`; `start`,
-`db:migrate:deploy` and `db:migrate:status` use `production`. Run any other entry point
-that imports `@repo/env` with `NODE_ENV` set, or it exits on startup.
+script sets it for you.
+
+- `production`: `start`, `db:migrate:deploy`, `db:migrate:status`
+- `development`: `dev`, `auth:gen`, and every other `db:*` script
+
+Run any other entry point that imports `@repo/env` with `NODE_ENV` set, or it exits on startup.
 
 ### Frontend
 
@@ -198,7 +202,9 @@ relative `/api` path and Better Auth falls back to `window.location.origin` — 
 build-time base URL is needed.
 
 > ⚠️ If you ever split the frontend and backend onto **different origins**, reintroduce a
-> `VITE_`-prefixed base URL (e.g. `VITE_BACKEND_URL`) and use it in [`pkg/api/src/client.ts`](pkg/api/src/client.ts).
+> `VITE_`-prefixed base URL (e.g. `VITE_BACKEND_URL`) and pass it to both clients: `hc()` in
+> [`rpc.ts`](pkg/react-query/src/lib/rpc.ts) and `createAuthClient({ baseURL })` in
+> [`auth-client.ts`](pkg/react-query/src/lib/auth-client.ts). You will also need CORS on the backend.
 > Only `VITE_`-prefixed variables are exposed to the browser; server secrets (`DATABASE_URL`, `BETTER_AUTH_SECRET`, …) are **never** shipped to the client.
 
 ---
@@ -213,10 +219,13 @@ Run from the repo root; each fans out across workspaces via `bun --filter '*'`.
 | `bun run build`             | Build the frontend for production.                                                                          |
 | `bun run start`             | Start the backend in production mode (serves the static build).                                             |
 | `bun run test`              | Run the unit test suites in each workspace that defines a `test` script (`bun test`).                       |
+| `bun run lint`              | Run ESLint in every workspace.                                                                              |
+| `bun run typecheck`         | Run `tsc --noEmit` in every workspace.                                                                      |
 | `bun run db:gen`            | Generate the Prisma client.                                                                                 |
 | `bun run db:push`           | Push the Prisma schema to the database (no migration history — dev/prototyping only).                       |
 | `bun run db:seed`           | Seed the database (runs [`pkg/db/src/seed.ts`](pkg/db/src/seed.ts)).                                        |
 | `bun run db:migrate`        | Create and apply a new migration in development (`prisma migrate dev`).                                     |
+| `bun run db:migrate:reset`  | ⚠️ **Drops all data**, then re-applies every migration (`prisma migrate reset --force`). Dev only.          |
 | `bun run db:migrate:deploy` | Apply all pending migrations without generating new ones (`prisma migrate deploy`) — for CI and production. |
 | `bun run db:migrate:status` | Show the status of migrations against the database.                                                         |
 | `bun run db:std`            | Open Prisma Studio.                                                                                         |
@@ -258,7 +267,10 @@ Everything under `/api/*` (except `/api/auth/*`) is protected by the [`isAuthent
 | `/`          | Sign in / Sign up | Redirects to `/dashboard` when authenticated.        |
 | `/dashboard` | Dashboard         | Shows the session; redirects to `/` when signed out. |
 
-Redirects are handled centrally by [`SessionProvider`](apps/frontend/src/components/session-provider.tsx).
+Redirects are handled by the route guards in [`auth-guard.tsx`](apps/frontend/src/components/auth-guard.tsx), wired up in [`router.tsx`](apps/frontend/src/app/router.tsx):
+
+- `ProtectedRoute` sends signed-out users to `/`, remembering the page they came from.
+- `PublicOnlyRoute` sends signed-in users back to that page, or to `/dashboard`.
 
 ---
 
@@ -317,6 +329,20 @@ bun run test
 
 ---
 
+## Continuous integration
+
+[`.github/workflows/ci.yaml`](.github/workflows/ci.yaml) runs on every pull request to `master`:
+
+1. Starts a **PostgreSQL 16** service container.
+2. Installs dependencies with the Bun version pinned in `packageManager` (`--frozen-lockfile`).
+3. Writes a dummy `apps/backend/.env` (no `NODE_ENV`, same as local).
+4. Applies migrations with `db:migrate:deploy`, then runs `db:gen`.
+5. Runs `lint`, `test`, and `typecheck` across all workspaces.
+
+A PR should not be merged until this check is green.
+
+---
+
 ## Contributing workflow
 
 Follow this loop for every task so the repo stays healthy and reviewable:
@@ -342,11 +368,14 @@ Follow this loop for every task so the repo stays healthy and reviewable:
 
    ```ts
    export const _route = new Hono<Env>()
-     .get('/', (c) => c.json({ message: 'Hello from hono' }))
-     .get('/me', (c) => {
-       const session = c.get('session') // typed, provided by middleware
-       return c.json({ user: session?.user ?? null })
+     .get("/", (c) => c.json({ message: "Hello from hono" }))
+     .get("/me", (c) => {
+       const session = c.get("session"); // typed, provided by middleware
+       return c.json({ user: session?.user ?? null });
      })
+     .all("*", (c) =>
+       c.json({ message: HTTPText.NOT_FOUND }, HTTPCode.NOT_FOUND),
+     ); // keep last
    ```
 
 2. `AppType` updates automatically — the frontend RPC client is instantly typed for `/api/me`. Because the route lives under `/api`, it's protected by the auth guard by default.
@@ -356,10 +385,10 @@ Follow this loop for every task so the repo stays healthy and reviewable:
    it's already configured with `credentials: 'include'` and the `/api` base path:
 
    ```ts
-   import { api } from '@repo/react-query/lib/rpc'
+   import { api } from "@repo/react-query/lib/rpc";
 
-   const res = await api.me.$get()
-   const data = await res.json() // fully typed from the route definition
+   const res = await api.me.$get();
+   const data = await res.json(); // fully typed from the route definition
    ```
 
    In practice, wrap this in a TanStack Query hook next to the auth hooks in
@@ -379,7 +408,7 @@ the migration history stays in sync across environments — CI applies it via `d
 
 ### Add a page
 
-Add a route object to [`apps/frontend/src/app/router.tsx`](apps/frontend/src/app/router.tsx) and, if it should be gated, extend the redirect logic in `SessionProvider`.
+Add a route object to [`apps/frontend/src/app/router.tsx`](apps/frontend/src/app/router.tsx). Put it under the `ProtectedRoute` group if it requires sign-in, or under `PublicOnlyRoute` if only signed-out users should see it.
 
 ---
 
