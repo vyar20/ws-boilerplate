@@ -86,10 +86,10 @@ Every workspace package is published internally as `@repo/<name>` and consumed v
 
 ### Apps
 
-| App                 | Description                                                                                                                                                                                                                                                                                                                                                   |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`apps/backend`**  | The Hono server. [`app.ts`](apps/backend/src/app.ts) builds the app (session middleware → Better Auth handler → auth guard → API routes → error handler). [`app-dev.ts`](apps/backend/src/app-dev.ts) runs it with Vite middleware for HMR; [`app-prod.ts`](apps/backend/src/app-prod.ts) serves the static build. Both API and frontend run on **one port**. |
-| **`apps/frontend`** | React 19 SPA (Vite + Tailwind v4). Providers for React Query and theme; route guards in [`auth-guard.tsx`](apps/frontend/src/components/auth-guard.tsx); auth forms built with react-hook-form + shared Zod schemas; toasts via the [shadcn base-ui Toast](https://ui.shadcn.com/docs/components/base/toast).                                                 |
+| App                 | Description                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`apps/backend`**  | The Hono server. [`app.ts`](apps/backend/src/app.ts) builds the app (security headers → CSRF check → session middleware → Better Auth handler → auth guard → API routes → error handler). [`app-dev.ts`](apps/backend/src/app-dev.ts) runs it with Vite middleware for HMR; [`app-prod.ts`](apps/backend/src/app-prod.ts) serves the static build. Both API and frontend run on **one port**. |
+| **`apps/frontend`** | React 19 SPA (Vite + Tailwind v4). Providers for React Query and theme; route guards in [`auth-guard.tsx`](apps/frontend/src/components/auth-guard.tsx); auth forms built with react-hook-form + shared Zod schemas; toasts via the [shadcn base-ui Toast](https://ui.shadcn.com/docs/components/base/toast).                                                                                 |
 
 ### Packages
 
@@ -258,7 +258,7 @@ Everything under `/api/*` (except `/api/auth/*`) is protected by the [`isAuthent
 | `POST` | `/api/auth/sign-out`      | —                           |
 | `GET`  | `/api/auth/get-session`   | —                           |
 
-**Password policy** (enforced in [`pkg/validations`](pkg/validations/src/sign-in-validation.ts)): at least **12 characters**, with an uppercase letter, a lowercase letter, a number, and a symbol.
+**Password policy** (enforced in [`pkg/validations`](pkg/validations/src/sign-in-validation.ts)): at least **12 characters**, with an uppercase letter, a lowercase letter, a number, and a symbol. It applies to **sign-up** (form + server hook) and Better Auth also enforces `minPasswordLength: 12` for any future reset/change-password flow. **Sign-in** only requires a non-empty password, so accounts created under an older policy can still log in.
 
 ### Frontend (React Router)
 
@@ -427,7 +427,10 @@ The production server serves the static SPA and the API from the same port defin
 
 - **Client/server boundary is enforced.** [`apps/frontend/eslint.config.js`](apps/frontend/eslint.config.js) uses `@typescript-eslint/no-restricted-imports` to block server-only packages (`@repo/db`, `@repo/env`, `@repo/api/auth`, `@repo/utils/logger`) from being imported in frontend code. `@repo/api/_route` is allowed **as a type import only**. This guarantees Prisma, secrets, and server logic never leak into the browser bundle.
 - **Secrets never reach the client.** The frontend ships with no env file, so no build-time values are baked into the bundle; only `VITE_`-prefixed vars would ever be exposed by Vite, and the RPC route type is erased at build time.
-- **Auth logs are allowlisted** — sign-in/sign-up events record only the masked email, never the raw request body or password — and credentials are validated against a strong password policy.
+- **Auth logs are allowlisted and success-only.** `USER_LOGGED_IN` / `USER_CREATED` are written from Better Auth's `after` hook only when a new session was created, so failed attempts are never logged as successes. They record only the masked email, never the raw request body or password.
+- **Passwords are hashed with argon2id** (Bun's `Bun.password` default). Existing **bcrypt** hashes still verify: `Bun.password.verify` detects the algorithm from the hash format (covered by a test in [`auth.test.ts`](pkg/api/src/lib/auth.test.ts)). Users with a bcrypt hash keep it until their password is changed.
+- **Security headers** on every response via Hono's [`secureHeaders()`](https://hono.dev/docs/middleware/builtin/secure-headers) (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, HSTS, `Referrer-Policy`, …). No CSP is set yet; add one with `secureHeaders({ contentSecurityPolicy })` once you know your asset origins.
+- **CSRF protection** on `/api/*` via Hono's [`csrf()`](https://hono.dev/docs/middleware/builtin/csrf): cross-site **form-style** writes (`application/x-www-form-urlencoded`, `multipart/form-data`, `text/plain`, or no content type) are rejected with `403` unless `Origin` or `Sec-Fetch-Site` says same-origin. Cross-origin JSON requests are blocked by the browser's CORS preflight, since no CORS is enabled. Behind a TLS-terminating proxy, make sure the request URL keeps the public `https://` origin, or form posts from older browsers without `Sec-Fetch-Site` will be rejected.
 - **Keep `.env` files out of version control** (already covered by `.gitignore`). Rotate any secret that has been shared or committed.
 
 ---
