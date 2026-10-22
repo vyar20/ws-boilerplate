@@ -15,15 +15,15 @@
         "del": "rm -rf node_modules dist"
     },
     "dependencies": {
-        "@better-auth/prisma-adapter": "^1.7.6",
-        "@hono/node-server": "^2.1.1",
+        "@better-auth/prisma-adapter": "^1.7.11",
+        "@hono/node-server": "^2.1.5",
         "@repo/api": "workspace:*",
         "@repo/db": "workspace:*",
         "@repo/env": "workspace:*",
         "@repo/utils": "workspace:*",
         "@repo/validations": "workspace:*",
-        "hono": "^4.13.10",
-        "vite": "^8.3.1"
+        "hono": "^4.13.13",
+        "vite": "^8.3.4"
     },
     "devDependencies": {
         "@repo/config": "workspace:*"
