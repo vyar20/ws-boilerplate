@@ -20,14 +20,14 @@
         ".": "./src/db.ts"
     },
     "dependencies": {
-        "@prisma/adapter-pg": "^7.10.0",
+        "@prisma/adapter-pg": "^7.10.1",
         "@prisma/client": "^7",
         "@repo/env": "workspace:*"
     },
     "devDependencies": {
         "@repo/config": "workspace:*",
         "@types/pg": "^8.23.1",
-        "auth": "^1.7.6",
+        "auth": "^1.7.13",
         "prisma": "^7"
     }
 }
