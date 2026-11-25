@@ -15,7 +15,19 @@ const envSchema = z.object({
   DATABASE_URL: z
     .url('DATABASE_URL is required')
     .regex(/^(postgres|postgresql):\/\//, {
-      error: 'DATABASE_URL should start with postgres|postgresql'
+      error: 'DATABASE_URL should start with (postgres|postgresql)://'
+    }),
+  BETTER_AUTH_BASE_URL: z
+    .url({
+      error: 'BETTER_AUTH_BASE_URL is required'
+    })
+    .regex(/^https?:\/\//, {
+      error: 'BETTER_AUTH_BASE_URL should start with (http|https)://'
+    }),
+  BETTER_AUTH_SECRET: z
+    .string({ error: 'BETTER_AUTH_BASE_URL is required' })
+    .min(32, {
+      error: 'BETTER_AUTH_BASE_URL min 32 chars'
     })
 })
 
