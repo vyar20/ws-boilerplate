@@ -20,6 +20,7 @@
         "pkg/*"
     ],
     "dependencies": {
+        "better-auth": "^1.7.27",
         "date-fns": "^4.4.0",
         "hono": "^4.13.20",
         "zod": "^4.6.7"

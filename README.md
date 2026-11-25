@@ -14,6 +14,7 @@ Feel free to clone / fork and enjoy building❤️
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
 - [Environtment Variable](#environtment-variable)
+- [Database](#database)
 
 ## Tech Stack
 
@@ -47,10 +48,12 @@ Feel free to clone / fork and enjoy building❤️
     |- backend/             # Backend App - Hono
     |- frontend/            # Frontend App - Vite + React
 |-  pkg/                    # Sharing packages
+    |- auth/                  # Better-Auth configuration
+    |- db/                  # Prisma configuration
     |- config/              # tsconfig, prettier, and eslint configs
     |- env/                 # env guard with zod
-    |- utils/               # sharing utility
-|-  .env.example            # example of .env
+    |- utils/               # Sharing utility
+|-  .env.example            # Example of .env
 |-  .gitignore              #
 |-  bun.lock                #
 |-  compose.yaml            #
@@ -72,6 +75,8 @@ Feel free to clone / fork and enjoy building❤️
 
 | Packages   |                                                                                   Description |
 | :--------- | --------------------------------------------------------------------------------------------: |
+| pkg/auth   |                                                                            Better Auth Config |
+| pkg/db     |                                                          Prisma Configuration + Prisma Schema |
 | pkg/config |                                                    Shared config (tsconfig, prettier, eslint) |
 | pkg/env    | Environtment variable guard that will stop if variable not comply with type that has been set |
 | pkg/utils  |                                            Shared utility (separated client + Server) utility |

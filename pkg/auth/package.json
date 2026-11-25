@@ -1,0 +1,23 @@
+{
+    "name": "@repo/auth",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "test": "bun test",
+        "lint": "eslint .",
+        "typecheck": "tsc --noEmit"
+    },
+    "exports": {
+        "./*": "./src/*.ts"
+    },
+    "dependencies": {
+        "@better-auth/prisma-adapter": "^1.7.27",
+        "@repo/db": "workspace:*",
+        "@repo/env": "workspace:*",
+        "@repo/utils": "workspace:*"
+    },
+    "devDependencies": {
+        "@repo/config": "workspace:*"
+    }
+}
