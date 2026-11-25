@@ -1,14 +1,19 @@
+import { env } from '@repo/env'
+import { HTTPStatus } from '@repo/utils/client-utils'
 import { Hono } from 'hono'
 
 const app = new Hono()
 
-app.get('/api', (c) =>
+app.get('/api/health', (c) =>
   c.json({
-    message: 'ok'
+    status: 'OK',
+    timestamp: Date.now()
   })
 )
 
+app.all('/api/*', (c) => c.text(HTTPStatus.NOT_FOUND))
+
 export default {
-  port: 3000,
+  port: env.PORT,
   fetch: app.fetch
 }

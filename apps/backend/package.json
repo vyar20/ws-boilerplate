@@ -4,9 +4,12 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "bun --hot src/app.ts"
+        "dev": "NODE_ENV=development bun --hot --env-file=../../.env src/app.ts"
     },
-    "dependencies": {},
+    "dependencies": {
+        "@repo/env": "workspace:*",
+        "@repo/utils": "workspace:*"
+    },
     "devDependencies": {
         "@repo/config": "workspace:*"
     }
