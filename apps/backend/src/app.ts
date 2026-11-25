@@ -4,6 +4,7 @@ import { env } from '@repo/env'
 import { HTTPCode, HTTPStatus, p } from '@repo/utils/client-utils'
 import { formatDistanceToNow } from 'date-fns'
 import { Hono } from 'hono'
+import { sessionMiddleware } from './middleware/session-middleware'
 
 const app = new Hono()
 const appStartAt = Date.now()
@@ -27,6 +28,7 @@ app.get('/api/health', async (c) => {
     err ? HTTPCode.SERVICE_UNAVAILABLE : HTTPCode.OK
   )
 })
+app.use(sessionMiddleware)
 app.all('/api/*', (c) => c.text(HTTPStatus.NOT_FOUND))
 
 export default {
