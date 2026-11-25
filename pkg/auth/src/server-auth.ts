@@ -4,7 +4,7 @@ import { env } from '@repo/env'
 import { betterAuth } from 'better-auth'
 
 // Max session 8 hours (seconds)
-const sessionDuration = 1000 * 60 * 60 * 8
+const sessionDuration = 1000 * 60 * 8
 
 export const serverAuth = betterAuth({
   database: prismaAdapter(db, { provider: 'postgresql' }),

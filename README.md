@@ -8,7 +8,7 @@ Feel free to clone / fork and enjoy building❤️
 
 ## Table of contents
 
-- [Tech Stack](#tech-stach)
+- [Tech Stack](#tech-stack)
 - [Feature](#feature)
 - [Folder Structure](#folder-structure)
 - [Prerequisites](#prerequisites)
@@ -277,7 +277,7 @@ import { env } from '@repo/env'
 import { betterAuth } from 'better-auth'
 
 // Max session 8 hours (seconds)
-const sessionDuration = 1000 * 60 * 60 * 8 // You can override on by changing this line (#8 is the hours)
+const sessionDuration = 1000 * 60 * 8 // You can override on by changing this line (#8 is the hours)
 
 export const serverAuth = betterAuth({
   database: prismaAdapter(db, { provider: 'postgresql' }),
