@@ -1,318 +1,304 @@
 # WS-Boilerplate
 
-## Introduction
+A full-stack TypeScript monorepo powered by Bun, Hono, Vite, React, and Better Auth.
 
-This repo was made from [Bun](https://bun.sh/) + [Vite + React](https://vite.dev/) + [Hono](https://hono.dev/) with [Better-Auth](https://better-auth.com/) for authentication.\
-The reason why i built this is because it's really painfull to setup everything from scratch, with this we only need to focusing on building something instead of focusing on build everything from zero.\
-Feel free to clone / fork and enjoy building❤️
+WS-Boilerplate provides a reusable foundation for building modern web applications without setting up authentication, database access, shared utilities, and development tooling from scratch. Spend less time configuring your project and more time building features.
 
-## Table of contents
+Feel free to clone, fork, and adapt this project to your needs.
+
+## Table of Contents
 
 - [Tech Stack](#tech-stack)
-- [Feature](#feature)
-- [Folder Structure](#folder-structure)
+- [Features](#features)
+- [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
-- [Environtment Variable](#environtment-variable)
+- [Environment Variables](#environment-variables)
 - [Database](#database)
 - [Authentication](#authentication)
+- [Docker](#docker)
+- [Development Workflow](#development-workflow)
+- [Contributing](#contributing)
 
 ## Tech Stack
 
-| Area               |                                                                                                                  Technology |
-| :----------------- | --------------------------------------------------------------------------------------------------------------------------: |
-| **Runtime**        |                                                                                                       [Bun](https://bun.sh) |
-| **Backend**        |                                                                                                   [Hono](https://hono.dev/) |
-| **Authentication** |                                                                                     [Better-Auth](https://better-auth.com/) |
-| **Frontend**       |                                                                                           [Vite + React](https://vite.dev/) |
-| **Data Fetching**  |                                                                  [@tanstack/react-query](https://tanstack.com/query/latest) |
-| **Forms**          | [react-query-form](https://react-hook-form.com/) + [@hookform/resolvers](https://www.npmjs.com/package/@hookform/resolvers) |
-| **Database**       |                                                                                   [Postgresql](https://www.postgresql.org/) |
-| **Database ORM**   |                                                                                      [prisma@7](https://www.prisma.io/docs) |
-| **Validation**     |                                                                                                     [Zod](https://zod.dev/) |
-| **Logging**        |                                                                              [Pino](https://getpino.io/#/) > File & Console |
+| Area | Technology |
+| --- | --- |
+| Runtime and package manager | [Bun](https://bun.sh/) |
+| Backend | [Hono](https://hono.dev/) |
+| Frontend | [Vite](https://vite.dev/) + [React](https://react.dev/) |
+| Authentication | [Better Auth](https://better-auth.com/) |
+| Data fetching | [TanStack Query](https://tanstack.com/query/latest) |
+| Forms | [React Hook Form](https://react-hook-form.com/) + [Resolvers](https://github.com/react-hook-form/resolvers) |
+| Database | [PostgreSQL](https://www.postgresql.org/) |
+| ORM | [Prisma 7](https://www.prisma.io/docs) |
+| Validation | [Zod](https://zod.dev/) |
+| Logging | [Pino](https://getpino.io/) (file and console) |
+| Email | [Nodemailer](https://nodemailer.com/) |
+| Containerization | [Docker](https://docs.docker.com/) |
 
-## Feature
+## Features
 
-- **Authentication**: Support multiple authentication (Email + Password, Social Provider: Google, Github, X, [read docs for more authentication method and docs](https://better-auth.com))
-- **Database**: [Postgresql](https://www.postgresql.org/)
-- **ORM**: Use [Prisma ORM](https://www.prisma.io/docs) as our ORM to help us manage Database and typesafe.
-- **End-to-end typesafe APIs**: All APIs have end to end typesafe, by utilizing [RPC](https://hono.dev/docs/guides/rpc) from [Hono](https://hono.dev)
-- **Frontend**: Build using [Vite + React](https://vite.dev/). Make us easier to make fast + modern Web App
-- **Backend**: Build using [Hono](https://hono.dev). Fast, lightweight, built on Web Standards
+- Bun workspaces for managing applications and shared packages.
+- Email/password authentication and social provider configuration for Google, GitHub, and X (Twitter).
+- Session middleware for protecting backend API routes while keeping authentication endpoints accessible.
+- Type-safe API development using [Hono RPC](https://hono.dev/docs/guides/rpc).
+- PostgreSQL database access through Prisma ORM.
+- Environment variable validation using Zod.
+- Shared TypeScript, ESLint, and Prettier configuration.
+- Shared client-side and server-side utilities.
+- Structured logging and email delivery support.
+- Docker and Docker Compose configuration.
 
-## Folder Structure
+> **Development status:** Authentication work currently focuses on the backend. Frontend authentication integration and end-to-end social sign-in testing are pending.
 
+## Project Structure
+
+```text
+.
+├── apps/
+│   ├── backend/          # Hono API server
+│   └── frontend/         # Vite + React SPA
+├── pkg/
+│   ├── auth/             # Better Auth configuration
+│   ├── db/               # Prisma configuration and models
+│   ├── config/           # Shared development configuration
+│   ├── env/              # Environment variable validation
+│   └── utils/            # Shared client and server utilities
+├── .env.example
+├── .gitignore
+├── bun.lock
+├── compose.yaml
+├── Dockerfile
+├── package.json
+└── README.md
 ```
-/
-|-  apps/                   # Applications
-    |- backend/             # Backend App - Hono
-    |- frontend/            # Frontend App - Vite + React
-|-  pkg/                    # Sharing packages
-    |- auth/                  # Better-Auth configuration
-    |- db/                  # Prisma configuration
-    |- config/              # tsconfig, prettier, and eslint configs
-    |- env/                 # env guard with zod
-    |- utils/               # Sharing utility
-|-  .env.example            # Example of .env
-|-  .gitignore              #
-|-  bun.lock                #
-|-  compose.yaml            #
-|-  Dockerfile              #
-|-  package.json            #
-|-  README.md               #
-```
 
-## Packages & Apps
+### Applications
 
-### Apps
+| Application | Description |
+| --- | --- |
+| `apps/backend` | Backend API built with Hono. |
+| `apps/frontend` | Single-page application built with Vite and React. |
 
-| App           |                 Description |
-| :------------ | --------------------------: |
-| apps/backend  |       Hono server build app |
-| apps/frontend | SPA built with Vite + React |
+### Shared Packages
 
-### Packages
-
-| Packages   |                                                                                   Description |
-| :--------- | --------------------------------------------------------------------------------------------: |
-| pkg/auth   |                                                                            Better Auth Config |
-| pkg/db     |                                                          Prisma Configuration + Prisma Schema |
-| pkg/config |                                                    Shared config (tsconfig, prettier, eslint) |
-| pkg/env    | Environtment variable guard that will stop if variable not comply with type that has been set |
-| pkg/utils  |                                            Shared utility (separated client + Server) utility |
+| Package | Description |
+| --- | --- |
+| `pkg/auth` | Centralized Better Auth configuration. |
+| `pkg/db` | Prisma configuration, schema, and database access. |
+| `pkg/config` | Shared TypeScript, ESLint, and Prettier configuration. |
+| `pkg/env` | Zod-based environment validation. |
+| `pkg/utils` | Shared utilities with separate client and server concerns. |
 
 ## Prerequisites
 
-- Bun@1.4.4
-- postgresql (local / hosted)
+- [Bun](https://bun.sh/) 1.4.4 (project reference version).
+- A running PostgreSQL instance (local or hosted).
+- Git.
+- GitHub CLI (optional, for contributing).
+- Docker and Docker Compose (optional, for containerized execution).
 
 ## Getting Started
 
-### 1. Clone or Fork Repo
-
-#### Clone
-
-Clone repo on your computer.
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/vyar20/slack-dm.git <your folder>
-cd <your folder>
+git clone https://github.com/vyar20/ws-boilerplate.git
+cd ws-boilerplate
 ```
 
-#### Fork
-
-Fork repo on your computer.
+Alternatively, fork and clone the repository using GitHub CLI:
 
 ```bash
-gh repo fork https://github.com/vyar20/slack-dm.git
+gh repo fork vyar20/ws-boilerplate --clone
 ```
 
-### 2. Configure .env
+### 2. Install dependencies
 
-Copy .env.example to .env and fill up all the variables. Follow [Environtment Variable](#environtment-variable) for Guidelines.\
-**Note: For NODE_ENV no need to add on [.env](.env) since it's already included on scripts for development and production**
+```bash
+bun install --frozen-lockfile
+```
+
+### 3. Configure environment variables
 
 ```bash
 cp .env.example .env
 ```
 
+Populate the required values using [Environment Variables](#environment-variables) as a guide. Create the PostgreSQL database before proceeding. Never commit real credentials or the local `.env` file.
+
+### 4. Set up the database
+
+```bash
+bun run db:push
+bun run db:gen
+```
+
+`db:push` synchronizes the schema with the development database. For production, prefer reviewed Prisma migrations rather than directly pushing schema changes.
+
+### 5. Start development
+
+```bash
+bun run dev
+```
+
+Use the URLs printed by the development servers.
+
+### 6. Run in production
+
+```bash
+bun run build
+bun run start
+```
+
+Configure production environment variables and apply any required database migrations before starting the application. Confirm that the root build and start scripts match your deployment target.
+
+## Environment Variables
+
+Environment variables are validated in [`pkg/env/src/env.ts`](pkg/env/src/env.ts). Update the validation schema and `.env.example` whenever new variables are introduced.
+
+| Variable | Description |
+| --- | --- |
+| `NODE_ENV` | Runtime mode (`development` or `production`); set by the application scripts. |
+| `PORT` | Application port, coerced to a number. |
+| `DATABASE_URL` | PostgreSQL connection URL. |
+| `BETTER_AUTH_BASE_URL` | Authentication base URL, including HTTP or HTTPS scheme. |
+| `BETTER_AUTH_SECRET` | Authentication secret, at least 32 characters. |
+| `BETTER_AUTH_GOOGLE_CLIENT_ID` | Google OAuth client ID. |
+| `BETTER_AUTH_GOOGLE_CLIENT_SECRET` | Google OAuth client secret. |
+| `BETTER_AUTH_GITHUB_CLIENT_ID` | GitHub OAuth client ID. |
+| `BETTER_AUTH_GITHUB_CLIENT_SECRET` | GitHub OAuth client secret. |
+| `BETTER_AUTH_X_CLIENT_ID` | X OAuth client ID. |
+| `BETTER_AUTH_X_CLIENT_SECRET` | X OAuth client secret. |
+
+Example local configuration:
+
 ```dotenv
 PORT=3000
-DATABASE_URL=postgres://postgres@localhost:5432/<your-database>
+DATABASE_URL=postgres://postgres:YOUR_PASSWORD@localhost:5432/YOUR_DATABASE
+BETTER_AUTH_BASE_URL=http://localhost:3000
+BETTER_AUTH_SECRET=REPLACE_WITH_A_RANDOM_SECRET
 ```
 
-### 3. Setup Database
+Generate a secret using:
 
 ```bash
-bun run db:push     # Push database schema on database
-bun run db:gen      # Generate types Prisma Client
+openssl rand -base64 32
 ```
 
-### 4. Run Server
-
-#### Development Mode
-
-```bash
-bun run dev         # Start database on development
-```
-
-#### Production Mode
-
-```bash
-bun run start         # Start database on production
-```
-
-## Environtment Variable
-
-Environtment Variables validated on [`/pkg/env/src/env.ts`](pkg/env/src/env.ts). Make sure all variables already set on **envSchema** variables.\
-Every environtment variables needs to set on [`/pkg/env/src/env.ts`](pkg/env/src/env.ts) if you add new variables.
-
-| Variable                 | Type                                          |                                    Description |
-| :----------------------- | --------------------------------------------- | ---------------------------------------------: |
-| **NODE_ENV**             | enum one of `development \| production`       |                                   Runtime mode |
-| **PORT**                 | number (coerced)                              |             Where app running on spesific port |
-| **BETTER_AUTH_BASE_URL** | Base url should start with `(http\|https)://` |                           Better-Auth base url |
-| **BETTER_AUTH_SECRET**   | String min 32 chars                           | Secret that used by Better-Auth for encryption |
+Add the OAuth and email credentials required by your environment schema. Refer to `.env.example` and the actual validation schema for the authoritative list; SMTP variable names are not specified here.
 
 ## Database
 
-You can find all database models on `pkg/db/prisma/models/*`.
+Database models are located in [`pkg/db/prisma/models/`](pkg/db/prisma/models/).
 
-### User Schema - [User Schema](/pkg/db/prisma/models/user.prisma)
+| Model | Purpose |
+| --- | --- |
+| [User](pkg/db/prisma/models/user.prisma) | User profile, unique email, verification status, and relationships. |
+| [Account](pkg/db/prisma/models/account.prisma) | Authentication provider accounts, credentials, and token metadata. |
+| [Session](pkg/db/prisma/models/session.prisma) | Session tokens, expiration, and client metadata. |
+| [Verification](pkg/db/prisma/models/verification.prisma) | Verification identifiers, values, and expiration. |
 
-```
-model User {
-    id            String    @id
-    name          String
-    email         String    @unique
-    emailVerified Boolean
-    image         String?
-    createdAt     DateTime  @db.Timestamptz(3)
-    updatedAt     DateTime  @db.Timestamptz(3)
-    accounts      Account[]
-    sessions      Session[]
-
-    @@map("user")
-}
-```
-
-### Account Schema - [Account Schema](/pkg/db/prisma/models/account.prisma)
-
-```
-model Account {
-    id                    String    @id
-    user                  User      @relation(fields: [userId], references: [id])
-    userId                String
-    accountId             String
-    providerId            String
-    accessToken           String?
-    refreshToken          String?
-    accessTokenExpiresAt  DateTime? @db.Timestamptz(3)
-    refreshTokenExpiresAt DateTime? @db.Timestamptz(3)
-    scope                 String?
-    idToken               String?
-    password              String?
-    createdAt             DateTime  @db.Timestamptz(3)
-    updatedAt             DateTime  @db.Timestamptz(3)
-
-    @@index([userId], map: "account_userId_idx")
-    @@map("account")
-}
-```
-
-### Session Schema - [Session Schema](/pkg/db/prisma/models/session.prisma)
-
-```
-model Session {
-    id        String   @id
-    user      User     @relation(fields: [userId], references: [id])
-    userId    String
-    token     String   @unique
-    expiresAt DateTime @db.Timestamptz(3)
-    ipAddress String?
-    userAgent String?
-    createdAt DateTime @db.Timestamptz(3)
-    updatedAt DateTime @db.Timestamptz(3)
-
-    @@index([userId], map: "session_userId_idx")
-    @@map("session")
-}
-```
-
-### Verification Schema - [Verification Schema](/pkg/db/prisma/models/verification.prisma)
-
-```
-model Verification {
-    id         String   @id
-    identifier String
-    value      String
-    expiresAt  DateTime @db.Timestamptz(3)
-    createdAt  DateTime @db.Timestamptz(3)
-    updatedAt  DateTime @db.Timestamptz(3)
-
-    @@index([identifier], map: "verification_identifier_idx")
-    @@map("verification")
-}
-```
+A user can have multiple accounts and sessions. The Prisma model files are the source of truth for fields, constraints, and indexes.
 
 ## Authentication
 
-Authentication built with [Better-Auth](https://better-auth.com/). All authentication configuration on [`pkg/auth/src/server-auth.ts`](pkg/auth/src/server-auth.ts).\
-You can learn how to get setup and get the clientId and client secret on [Better-Auth](https://better-auth.com/) website.\
-All authentication schema is setup on.
+Authentication is managed by [Better Auth](https://better-auth.com/) and configured in [`pkg/auth/src/server-auth.ts`](pkg/auth/src/server-auth.ts).
 
-- [`pkg/db/prisma/models/account.prisma`](pkg/db/prisma/models/account.prisma)
-- [`pkg/db/prisma/models/session.prisma`](pkg/db/prisma/models/session.prisma)
-- [`pkg/db/prisma/models/user.prisma`](pkg/db/prisma/models/user.prisma)
-- [`pkg/db/prisma/models/verification.prisma`](pkg/db/prisma/models/verification.prisma)
+### Email and Password
 
-Default authentication method is:
+The intended email/password workflow requires users to verify their email addresses. Verification links are logged during development and delivered by email in production when email verification and delivery are configured.
 
-- Email & Password
-- Google
-- Github
-- X (twitter)
+Email delivery uses Nodemailer with Gmail SMTP and an [App Password](https://myaccount.google.com/apppasswords). Configure the required credentials before enabling email delivery.
 
-### Notes for Email & Password
+### Social Providers
 
-Email and password work flow requires user to activate their account. Activation link will send via Email (**production**) and on will appear on log (**development**).\
-Email will send using [Nodemailer](https://nodemailer.com/) so please learn how to use this library.\
-Default config for [Nodemailer](https://nodemailer.com/) using gmail smtp that will authenticated by App Password that you can get on your google or you can click this [link](https://myaccount.google.com/apppasswords).\
-Before continue, make sure you already setup the [Environtment Variable](#environtment-variable)
+The backend configuration includes Google, GitHub, and X (Twitter). Create OAuth applications with each provider and configure their client IDs and secrets.
 
-### Social Provider
+With Better Auth's default `/api/auth` base path, register callback URLs in the following format:
 
-Using social provider for your authentication method requires you to get clientId and clientSecret (most sso requires that).\
-So you need to learn how to get those id and secret and learn how to use it on [Better-Auth](https://better-auth.com/).
-
-### Session Expires
-
-Default session will lasting for 8 hours but you can extend it on [`pkg/auth/src/server-auth.ts`](pkg/auth/src/server-auth.ts) on **sessionDuration** variable.
-
-```typescript
-import { prismaAdapter } from '@better-auth/prisma-adapter'
-import { db } from '@repo/db'
-import { env } from '@repo/env'
-import { betterAuth } from 'better-auth'
-
-// Max session 8 hours (seconds)
-const sessionDuration = 1000 * 60 * 8 // You can override on by changing this line (#8 is the hours)
-
-export const serverAuth = betterAuth({
-  database: prismaAdapter(db, { provider: 'postgresql' }),
-  baseURL: env.BETTER_AUTH_BASE_URL,
-  secret: env.BETTER_AUTH_SECRET,
-  session: {
-    expiresIn: sessionDuration
-  },
-  advanced: {
-    database: {
-      joins: true
-    }
-  },
-  /**
-   * Authentication method
-   * Read Better-Auth docs for more methods
-   * https://better-auth.com
-   */
-  emailAndPassword: {
-    enabled: true
-  },
-  socialProviders: {
-    // Add your SSO here
-    google: {
-      clientId: env.BETTER_AUTH_GOOGLE_CLIENT_ID,
-      clientSecret: env.BETTER_AUTH_GOOGLE_CLIENT_SECRET
-    },
-    github: {
-      clientId: env.BETTER_AUTH_GITHUB_CLIENT_ID,
-      clientSecret: env.BETTER_AUTH_GITHUB_CLIENT_SECRET
-    },
-    twitter: {
-      clientId: env.BETTER_AUTH_X_CLIENT_ID,
-      clientSecret: env.BETTER_AUTH_X_CLIENT_SECRET
-    }
-  }
-})
+```text
+<AUTH_BASE_URL>/api/auth/callback/google
+<AUTH_BASE_URL>/api/auth/callback/github
+<AUTH_BASE_URL>/api/auth/callback/twitter
 ```
+
+Adjust the URLs if your authentication base path differs. See the [Better Auth documentation](https://better-auth.com/docs) for provider-specific setup.
+
+### Session Middleware
+
+The [session middleware](apps/backend/src/middleware/session-middleware.ts) is intended to require valid sessions for protected `/api/*` routes. Authentication endpoints must remain accessible without an existing session where required by the authentication flow.
+
+Verify that unauthenticated requests return `401 Unauthorized`, authenticated requests succeed, and authentication endpoints are not blocked by the middleware.
+
+### Session Expiration
+
+The intended default session lifetime is eight hours. Better Auth expects `session.expiresIn` in seconds:
+
+```ts
+const sessionDuration = 60 * 60 * 8
+
+// Inside the Better Auth configuration:
+// session: { expiresIn: sessionDuration }
+```
+
+Update the duration in `pkg/auth/src/server-auth.ts` as needed.
+
+## Docker
+
+The repository includes a `Dockerfile` and `compose.yaml`. Review their service definitions, ports, and environment configuration before running the application.
+
+### Docker Compose
+
+```bash
+docker compose up -d --build
+docker compose logs -f
+```
+
+Stop and remove the Compose containers and networks:
+
+```bash
+docker compose down
+```
+
+### Docker CLI
+
+Assuming the application listens on port 3000 and the Dockerfile builds the runnable application:
+
+```bash
+docker build -t ws-boilerplate .
+docker run -d --name ws-boilerplate --env-file .env -p 3000:3000 ws-boilerplate
+```
+
+If PostgreSQL runs on your host rather than inside the container, `localhost` inside the container will not refer to the host. On Docker Desktop, use `host.docker.internal` where appropriate. For a Compose-managed database, use its service name.
+
+## Development Workflow
+
+Use short-lived feature branches and pull requests to keep the default branch stable.
+
+```bash
+git switch -c feat/your-feature
+# Make changes and review git diff.
+git add .
+git commit -m "feat(scope): describe your change"
+git push -u origin HEAD
+```
+
+Before opening a pull request, run the available lint, type-check, test, and build scripts defined in `package.json`. Review the diff for unrelated changes and sensitive information.
+
+## Contributing
+
+Contributions, bug reports, and suggestions are welcome.
+
+Keep pull requests focused on a single objective. Use descriptive branch names and Conventional Commit-style titles, such as `feat(auth): add session middleware`.
+
+If the repository includes `.github/pull_request_template.md`, use it to document the summary, reason, changes, testing instructions, and impact. To prepare a description locally:
+
+```bash
+cp .github/pull_request_template.md pr-description.md
+# Edit pr-description.md before creating the PR.
+gh pr create --title "feat(scope): describe your change" --body-file pr-description.md
+```
+
+Keep `/pr-description.md` in `.gitignore` if it is used as a temporary local file. Report tests that have not been performed and any limitations honestly. Merge only after applicable checks and reviews are complete.
