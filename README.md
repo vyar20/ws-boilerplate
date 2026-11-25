@@ -146,3 +146,84 @@ Environtment Variables validated on [`/pkg/env/src/env.ts`](pkg/env/src/env.ts).
 | **NODE_ENV**     | enum one of `development \| production`               |                       Runtime mode |
 | **PORT**         | number (coerced)                                      | Where app running on spesific port |
 | **DATABASE_URL** | Database URL should start with `postgres\|postgresql` |       Postgresql connection string |
+
+## Database
+
+You can find all database models on `pkg/db/prisma/models/*`
+
+### User Schema - [User Schema](/pkg/db/prisma/models/user.prisma)
+
+```
+model User {
+    id            String    @id
+    name          String
+    email         String    @unique
+    emailVerified Boolean
+    image         String?
+    createdAt     DateTime  @db.Timestamptz(3)
+    updatedAt     DateTime  @db.Timestamptz(3)
+    accounts      Account[]
+    sessions      Session[]
+
+    @@map("user")
+}
+```
+
+### Account Schema - [Account Schema](/pkg/db/prisma/models/account.prisma)
+
+```
+model Account {
+    id                    String    @id
+    user                  User      @relation(fields: [userId], references: [id])
+    userId                String
+    accountId             String
+    providerId            String
+    accessToken           String?
+    refreshToken          String?
+    accessTokenExpiresAt  DateTime? @db.Timestamptz(3)
+    refreshTokenExpiresAt DateTime? @db.Timestamptz(3)
+    scope                 String?
+    idToken               String?
+    password              String?
+    createdAt             DateTime  @db.Timestamptz(3)
+    updatedAt             DateTime  @db.Timestamptz(3)
+
+    @@index([userId], map: "account_userId_idx")
+    @@map("account")
+}
+```
+
+### Session Schema - [Session Schema](/pkg/db/prisma/models/session.prisma)
+
+```
+model Session {
+    id        String   @id
+    user      User     @relation(fields: [userId], references: [id])
+    userId    String
+    token     String   @unique
+    expiresAt DateTime @db.Timestamptz(3)
+    ipAddress String?
+    userAgent String?
+    createdAt DateTime @db.Timestamptz(3)
+    updatedAt DateTime @db.Timestamptz(3)
+
+    @@index([userId], map: "session_userId_idx")
+    @@map("session")
+}
+```
+
+### Verification Schema - [Verification Schema](/pkg/db/prisma/models/verification.prisma)
+
+```
+model Verification {
+    id         String   @id
+    identifier String
+    value      String
+    expiresAt  DateTime @db.Timestamptz(3)
+    createdAt  DateTime @db.Timestamptz(3)
+    updatedAt  DateTime @db.Timestamptz(3)
+
+    @@index([identifier], map: "verification_identifier_idx")
+    @@map("verification")
+}
+```
