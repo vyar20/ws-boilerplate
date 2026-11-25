@@ -9,6 +9,9 @@
         "lint": "bun --filter \"*\" lint",
         "typecheck": "bun --filter \"*\" typecheck",
         "test": "bun --filter \"*\" test",
+        "db:push": "bun --filter \"*\" db:push",
+        "db:gen": "bun --filter \"*\" db:gen",
+        "db:migrate": "bun --filter \"*\" db:migrate",
         "del": "find . -type d \\( -name node_modules -o -name dist \\) -exec rm -rf {} +"
     },
     "packageManager": "bun@1.4.4",
@@ -17,6 +20,7 @@
         "pkg/*"
     ],
     "dependencies": {
+        "date-fns": "^4.4.0",
         "hono": "^4.13.20",
         "zod": "^4.6.7"
     },

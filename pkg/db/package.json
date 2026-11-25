@@ -1,0 +1,26 @@
+{
+    "name": "@repo/db",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "test": "bun test",
+        "lint": "eslint .",
+        "typecheck": "tsc --noEmit",
+        "db:push": "NODE_ENV=development bun --bun --env-file=../../.env prisma db push",
+        "db:gen": "NODE_ENV=development bun --bun --env-file=../../.env prisma generate",
+        "db:migrate": "NODE_ENV=development bun --bun --env-file=../../.env prisma migrate dev"
+    },
+    "exports": {
+        ".": "./src/db.ts"
+    },
+    "dependencies": {
+        "@prisma/adapter-pg": "^7.10.1",
+        "@prisma/client": "7",
+        "@repo/env": "workspace:*"
+    },
+    "devDependencies": {
+        "@repo/config": "workspace:*",
+        "prisma": "7"
+    }
+}

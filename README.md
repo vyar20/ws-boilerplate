@@ -134,7 +134,7 @@ bun run dev         # Start database on development
 #### Production Mode
 
 ```bash
-bun run start         # Start database on development
+bun run start         # Start database on production
 ```
 
 ## Environtment Variable

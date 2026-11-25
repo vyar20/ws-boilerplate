@@ -1,0 +1,19 @@
+model Account {
+    id                    String    @id
+    user                  User      @relation(fields: [userId], references: [id])
+    userId                String
+    accountId             String
+    providerId            String
+    accessToken           String?
+    refreshToken          String?
+    accessTokenExpiresAt  DateTime? @db.Timestamptz(3)
+    refreshTokenExpiresAt DateTime? @db.Timestamptz(3)
+    scope                 String?
+    idToken               String?
+    password              String?
+    createdAt             DateTime  @db.Timestamptz(3)
+    updatedAt             DateTime  @db.Timestamptz(3)
+
+    @@index([userId], map: "account_userId_idx")
+    @@map("account")
+}

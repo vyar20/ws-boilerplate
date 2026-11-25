@@ -1,3 +1,5 @@
+/// <reference types="bun"/>
+
 import z from 'zod'
 
 declare module 'bun' {
@@ -5,7 +7,7 @@ declare module 'bun' {
   interface Env extends EnvSchema {}
 }
 
-export const envSchema = z.object({
+const envSchema = z.object({
   NODE_ENV: z.enum(['production', 'development'], {
     error: 'NODE_ENV should be one of production|development.'
   }),
@@ -17,7 +19,7 @@ export const envSchema = z.object({
     })
 })
 
-export type EnvSchema = z.infer<typeof envSchema>
+type EnvSchema = z.infer<typeof envSchema>
 
 export const env = (() => {
   const parsed = envSchema.safeParse(Bun.env)

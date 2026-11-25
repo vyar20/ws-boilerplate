@@ -1,15 +1,30 @@
+import { db } from '@repo/db'
 import { env } from '@repo/env'
-import { HTTPStatus } from '@repo/utils/client-utils'
+import { HTTPCode, HTTPStatus, p } from '@repo/utils/client-utils'
+import { formatDistanceToNow } from 'date-fns'
 import { Hono } from 'hono'
 
 const app = new Hono()
+const appStartAt = Date.now()
 
-app.get('/api/health', (c) =>
-  c.json({
-    status: 'OK',
-    timestamp: Date.now()
-  })
-)
+app.get('/api/health', async (c) => {
+  const [err] = await p(db.$queryRaw`SELECT 1`)
+
+  return c.json(
+    {
+      status: 'OK',
+      database: {
+        status: err ? 'Not Connected' : 'Connected'
+      },
+      timestamp: Date.now(),
+      upTime: formatDistanceToNow(appStartAt, {
+        addSuffix: true,
+        includeSeconds: true
+      })
+    },
+    err ? HTTPCode.SERVICE_UNAVAILABLE : HTTPCode.OK
+  )
+})
 
 app.all('/api/*', (c) => c.text(HTTPStatus.NOT_FOUND))
 

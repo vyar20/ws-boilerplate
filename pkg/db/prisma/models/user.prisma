@@ -1,0 +1,13 @@
+model User {
+    id            String    @id
+    name          String
+    email         String    @unique
+    emailVerified Boolean
+    image         String?
+    createdAt     DateTime  @db.Timestamptz(3)
+    updatedAt     DateTime  @db.Timestamptz(3)
+    accounts      Account[]
+    sessions      Session[]
+
+    @@map("user")
+}

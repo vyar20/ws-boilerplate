@@ -4,9 +4,14 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "NODE_ENV=development bun --hot --env-file=../../.env src/app.ts"
+        "dev": "NODE_ENV=development bun --hot --env-file=../../.env src/app.ts",
+        "start": "NODE_ENV=production bun run --env-file=../../.env src/app.ts",
+        "test": "bun test",
+        "lint": "eslint .",
+        "typecheck": "tsc --noEmit"
     },
     "dependencies": {
+        "@repo/db": "workspace:*",
         "@repo/env": "workspace:*",
         "@repo/utils": "workspace:*"
     },
