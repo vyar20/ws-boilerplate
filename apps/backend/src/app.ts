@@ -12,7 +12,12 @@ import {
 } from './middleware/session-middleware'
 
 const app = new Hono<HonoEnv>()
-const appStartAt = Date.now()
+const globalAppStart = globalThis as unknown as {
+  appStartAt: number
+}
+const appStartAt = globalAppStart.appStartAt ?? Date.now()
+
+if (env.NODE_ENV !== 'production') globalAppStart.appStartAt = appStartAt
 
 app.use(loggerMiddleware)
 app.all('/api/auth/*', (c) => serverAuth.handler(c.req.raw))
