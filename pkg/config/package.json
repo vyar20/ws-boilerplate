@@ -8,6 +8,7 @@
         "./prettier": "./prettier.ts",
         "./eslint": "./eslint.ts"
     },
+    "dependencies": {},
     "devDependencies": {
         "@eslint/js": "^10.0.1",
         "prettier-plugin-tailwindcss": "^0.8.1",

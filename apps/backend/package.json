@@ -1,0 +1,13 @@
+{
+    "name": "backend",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "bun --hot src/app.ts"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "@repo/config": "workspace:*"
+    }
+}

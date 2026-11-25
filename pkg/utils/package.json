@@ -6,6 +6,7 @@
     "exports": {
         "./*": "./src/*.ts"
     },
+    "dependencies": {},
     "devDependencies": {
         "@repo/config": "workspace:*"
     }

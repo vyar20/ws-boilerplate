@@ -13,7 +13,7 @@ export default {
   plugins: [
     path.join(
       workDir,
-      '../../node_modules/prettier-plugin-tailwindcss/dist/index.mjs'
+      'node_modules/prettier-plugin-tailwindcss/dist/index.mjs'
     )
   ]
 } as Config
