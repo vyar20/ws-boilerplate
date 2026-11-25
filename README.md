@@ -252,7 +252,7 @@ Default authentication method is:
 - Email & Password
 - Google
 - Github
-- X
+- X (twitter)
 
 ### Notes for Email & Password
 
@@ -299,8 +299,20 @@ export const serverAuth = betterAuth({
   emailAndPassword: {
     enabled: true
   },
-  plugins: [
-    // add your SSO here
-  ]
+  socialProviders: {
+    // Add your SSO here
+    google: {
+      clientId: env.BETTER_AUTH_GOOGLE_CLIENT_ID,
+      clientSecret: env.BETTER_AUTH_GOOGLE_CLIENT_SECRET
+    },
+    github: {
+      clientId: env.BETTER_AUTH_GITHUB_CLIENT_ID,
+      clientSecret: env.BETTER_AUTH_GITHUB_CLIENT_SECRET
+    },
+    twitter: {
+      clientId: env.BETTER_AUTH_X_CLIENT_ID,
+      clientSecret: env.BETTER_AUTH_X_CLIENT_SECRET
+    }
+  }
 })
 ```

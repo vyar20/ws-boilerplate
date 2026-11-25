@@ -13,22 +13,40 @@ const envSchema = z.object({
   }),
   PORT: z.coerce.number({ error: 'PORT is required.' }),
   DATABASE_URL: z
-    .url('DATABASE_URL is required')
+    .url('DATABASE_URL is required.')
     .regex(/^(postgres|postgresql):\/\//, {
-      error: 'DATABASE_URL should start with (postgres|postgresql)://'
+      error: 'DATABASE_URL should start with (postgres|postgresql)://.'
     }),
   BETTER_AUTH_BASE_URL: z
     .url({
-      error: 'BETTER_AUTH_BASE_URL is required'
+      error: 'BETTER_AUTH_BASE_URL is required.'
     })
     .regex(/^https?:\/\//, {
-      error: 'BETTER_AUTH_BASE_URL should start with (http|https)://'
+      error: 'BETTER_AUTH_BASE_URL should start with (http|https)://.'
     }),
   BETTER_AUTH_SECRET: z
-    .string({ error: 'BETTER_AUTH_BASE_URL is required' })
+    .string({ error: 'BETTER_AUTH_BASE_URL is required.' })
     .min(32, {
-      error: 'BETTER_AUTH_BASE_URL min 32 chars'
-    })
+      error: 'BETTER_AUTH_BASE_URL min 32 chars.'
+    }),
+  BETTER_AUTH_GOOGLE_CLIENT_ID: z.string({
+    error: 'BETTER_AUTH_GOOGLE_CLIENT_ID is required.'
+  }),
+  BETTER_AUTH_GOOGLE_CLIENT_SECRET: z.string({
+    error: 'BETTER_AUTH_GOOGLE_CLIENT_SECRET is required.'
+  }),
+  BETTER_AUTH_GITHUB_CLIENT_ID: z.string({
+    error: 'BETTER_AUTH_GITHUB_CLIENT_ID is required.'
+  }),
+  BETTER_AUTH_GITHUB_CLIENT_SECRET: z.string({
+    error: 'BETTER_AUTH_GITHUB_CLIENT_SECRET is required.'
+  }),
+  BETTER_AUTH_X_CLIENT_ID: z.string({
+    error: 'BETTER_AUTH_X_CLIENT_ID is required.'
+  }),
+  BETTER_AUTH_X_CLIENT_SECRET: z.string({
+    error: 'BETTER_AUTH_X_CLIENT_SECRET is required.'
+  })
 })
 
 type EnvSchema = z.infer<typeof envSchema>
