@@ -25,6 +25,7 @@ export const loggerMiddleware = createMiddleware(async (c, next) => {
   )
 
   await next()
+
   const duration = Number((performance.now() - start).toFixed(2))
 
   const status = c.res.status
